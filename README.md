@@ -42,6 +42,36 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
+## Rang-ikoner med 7TV
+
+Botten skriver tier-navnet som et almindeligt ord — `CHALLENGER`, `EMERALD` —
+og 7TV bytter det ud med et ikon hos dem der har udvidelsen installeret.
+
+![Botten med 7TV-ikoner i chatten](assets/7tv-preview.png)
+
+### Sådan får din kanal ikonerne
+
+**1. Hent emotes** fra [dette 7TV-sæt](https://7tv.app/users/01HMPER1EG00070FCM1Q64R22S)
+og tilføj dem til din kanals emote set.
+
+**2. Navnene skal være præcis disse**, med store bogstaver — 7TV skelner, så
+`Emerald` og `EMERALD` er to forskellige emotes:
+
+```
+IRON  BRONZE  SILVER  GOLD  PLATINUM  EMERALD  DIAMOND  MASTER  GRANDMASTER  CHALLENGER
+```
+
+Mangler én af dem, skriver botten bare tier-navnet som tekst på den linje,
+mens de øvrige viser ikoner.
+
+**3. Seerne skal have 7TV installeret** — [browserudvidelsen](https://7tv.app)
+findes til Chrome og Firefox. Uden den ser de `CHALLENGER 2418LP` som ren
+tekst, hvilket stadig læses fint. Der findes ingen måde at sende billeder til
+alle i en Twitch-chat.
+
+Vil du helt undgå ikonerne, sættes `RANK_STYLE=letters` i `.env`. Så skriver
+botten `C2418LP` i stedet.
+
 ## Regioner
 
 Koden du skriver til `!oldregion`, og hvilken server den dækker. Riots egne
