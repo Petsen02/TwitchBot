@@ -38,16 +38,6 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
-**mod** dækker både moderatorer og broadcasteren.
-
-Uautoriseret brug ignoreres i stilhed frem for at få et svar, så en låst
-kommando ikke kan bruges til at spamme chatten.
-
-Riot-konti er globale, men rangdata er det ikke. En EUW-spiller tilføjet til en
-NA-kanal bliver derfor fundet, og står så som Unranked for altid uden spor af
-hvorfor. Botten siger det ved tilføjelsen i stedet for at lade det blive
-opdaget senere.
-
 ## Udseende
 
 `RANK_STYLE` er som standard `emotes`, som skriver tier-navnet i stedet for
