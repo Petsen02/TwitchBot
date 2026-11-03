@@ -143,7 +143,9 @@ async function main() {
     options: { debug: false, skipUpdatingEmotesets: true },
     connection: { reconnect: true, secure: true },
     identity: { username: twitch.username, password: twitch.password },
-    channels: joined,
+    // tmi.js rewrites this array in place, prefixing every name with "#", so
+    // it gets a copy — otherwise our own channel names change under us.
+    channels: [...joined],
   });
 
   client.on('connected', (address, port) => {
