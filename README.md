@@ -22,6 +22,7 @@ flere streamere uden at de ser hinandens spillere.
 | `!rank [Navn#TAG]` | `RASMUS EMERALD IV: 2LP` — apex-spillere får også `(Rank#167)` |
 | `!ranks` | Kanalens liste, nummereret, højeste først |
 | `!gains [Navn#TAG]` | `RASMUS: 3W 2L (+24 LP) 🟩🟩🟥🟩🟥` for i dag |
+| `!nextrank [Navn#TAG]` | `Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV` |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
 | `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
