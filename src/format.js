@@ -144,11 +144,11 @@ export function formatCutoffs({
 }
 
 /**
- * "Petsen SILVER II: 40LP │ mangler 160 LP til GOLD IV │ ca. 8 wins á 20 LP"
+ * "Petsen SILVER II: 40LP │ mangler 160 LP til GOLD IV │ 8 wins á 20 LP"
  *
- * The win estimate uses the player's own measured gains where we have them,
- * and says which figure it used — an estimate whose basis is hidden invites
- * more questions than it answers.
+ * The win count uses the player's own measured gains where we have them, and
+ * shows the LP figure it divided by. Without measurements the count stands
+ * alone, computed from a default.
  */
 export function formatNextRank({ name, entry, targetEntry, targetLabel, lpNeeded, lpPerWin, measured }) {
   const current = `${name} ${formatRank(entry, config.rankStyle)}`;
@@ -162,9 +162,10 @@ export function formatNextRank({ name, entry, targetEntry, targetLabel, lpNeeded
     const wins = Math.ceil(lpNeeded / lpPerWin);
     const label = `${wins} ${wins === 1 ? 'win' : 'wins'}`;
 
-    // Say where the number comes from: measured from this player's own games,
-    // or a flat assumption because none have been measured yet.
-    fields.push(measured ? `ca. ${label} á ${Math.round(lpPerWin)} LP` : `ca. ${label} (anslået)`);
+    // With measured gains the LP figure is shown, which is also what tells a
+    // reader the number came from this player's own games rather than a
+    // default. Without it, the bare win count stands on its own.
+    fields.push(measured ? `${label} á ${Math.round(lpPerWin)} LP` : label);
   }
 
   return fields.join(SEP);
