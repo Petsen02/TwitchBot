@@ -21,6 +21,7 @@ import {
   commandRemoveMain,
   commandRegion,
   commandCommands,
+  commandNextRank,
   truncate,
 } from './commands.js';
 
@@ -32,6 +33,7 @@ const handlers = new Map([
   ['rank', { level: 'everyone', run: commandRank }],
   ['ranks', { level: 'everyone', run: commandRanks }],
   ['gains', { level: 'everyone', run: commandGains }],
+  ['nextrank', { level: 'everyone', run: commandNextRank }],
   ['lastgame', { level: 'everyone', run: commandLastGame }],
   ['lobby', { level: 'everyone', run: commandGame }],
   // Two names, one answer: nobody has to remember which is which.

@@ -1,5 +1,5 @@
 import { config } from './config.js';
-import { formatRank, formatLpDelta } from './ladder.js';
+import { formatRank, formatTier, formatLpDelta } from './ladder.js';
 import { formatDuration, formatClock, formatDate } from './time.js';
 
 /** The reference bot separates fields with a spaced box-drawing bar. */
@@ -141,6 +141,33 @@ export function formatCutoffs({
   if (nextUpdateAt) fields.push(`næste update ${stamp(nextUpdateAt)}`);
 
   return `${platform} ${fields.join(SEP)}`;
+}
+
+/**
+ * "Petsen SILVER II: 40LP │ mangler 160 LP til GOLD IV │ ca. 8 wins á 20 LP"
+ *
+ * The win estimate uses the player's own measured gains where we have them,
+ * and says which figure it used — an estimate whose basis is hidden invites
+ * more questions than it answers.
+ */
+export function formatNextRank({ name, entry, targetEntry, targetLabel, lpNeeded, lpPerWin, measured }) {
+  const current = `${name} ${formatRank(entry, config.rankStyle)}`;
+
+  // The target is a threshold, not a standing, so it carries no LP figure.
+  const target = targetEntry ? formatTier(targetEntry, config.rankStyle) : targetLabel;
+
+  const fields = [current, `mangler ${lpNeeded} LP til ${target}`];
+
+  if (lpPerWin) {
+    const wins = Math.ceil(lpNeeded / lpPerWin);
+    const label = `${wins} ${wins === 1 ? 'win' : 'wins'}`;
+
+    // Say where the number comes from: measured from this player's own games,
+    // or a flat assumption because none have been measured yet.
+    fields.push(measured ? `ca. ${label} á ${Math.round(lpPerWin)} LP` : `ca. ${label} (anslået)`);
+  }
+
+  return fields.join(SEP);
 }
 
 /** "Avg rank: EMERALD II: 35LP │ Pros: Caps (Azir)" */

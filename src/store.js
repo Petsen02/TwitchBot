@@ -126,6 +126,26 @@ export class Store {
     this.#state.cutoffs[platform] = snapshot;
   }
 
+  /**
+   * The player's own average LP per win, from measured games.
+   *
+   * Far better than assuming a flat figure: LP gains vary a lot with MMR, and
+   * a player on a winning streak earns very different amounts from one who is
+   * stuck. Returns null until at least one win has been measured.
+   */
+  getAverageLpGain(puuid) {
+    const matches = this.#state.accounts[puuid]?.matches;
+    if (!matches) return null;
+
+    const gains = Object.values(matches)
+      .map((record) => record.lpDelta)
+      .filter((delta) => typeof delta === 'number' && delta > 0);
+
+    if (gains.length === 0) return null;
+
+    return gains.reduce((sum, value) => sum + value, 0) / gains.length;
+  }
+
   /** When this account last had a match recorded, used to pace polling. */
   getLastMatchAt(puuid) {
     const matches = this.#state.accounts[puuid]?.matches;

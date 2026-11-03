@@ -133,6 +133,41 @@ export function formatRank(entry, style = 'letters') {
   return `${abbrev}${DIVISION_TO_NUMBER[entry.rank] ?? 4} ${lp}LP`;
 }
 
+/**
+ * The entry point of the next tier up: Silver anything -> Gold IV.
+ *
+ * Returns null at Master and above, where promotion is decided by a moving
+ * cutoff rather than a fixed LP threshold, and has to be answered differently.
+ */
+export function nextTierEntry(tier) {
+  if (isApex(tier)) return null;
+
+  const index = TIER_ORDER.indexOf(tier);
+  if (index === -1) return null;
+
+  // Diamond is the last tier with divisions; above it sits Master.
+  if (index === TIER_ORDER.length - 1) {
+    return { tier: 'MASTER', rank: 'I', leaguePoints: 0 };
+  }
+
+  return { tier: TIER_ORDER[index + 1], rank: 'IV', leaguePoints: 0 };
+}
+
+/** Tier and division with no LP: "GOLD IV", "MASTER". For naming a target. */
+export function formatTier(entry, style = 'letters') {
+  if (!entry) return 'Unranked';
+
+  if (style === 'emotes') {
+    const emote = TIER_EMOTE[entry.tier];
+    if (!emote) return 'Unranked';
+    return isApex(entry.tier) ? emote : `${emote} ${entry.rank ?? 'IV'}`;
+  }
+
+  const abbrev = TIER_ABBREV[entry.tier];
+  if (!abbrev) return 'Unranked';
+  return isApex(entry.tier) ? abbrev : `${abbrev}${DIVISION_TO_NUMBER[entry.rank] ?? 4}`;
+}
+
 /** Signed LP delta for display: "+30 LP" / "-17 LP". */
 export function formatLpDelta(delta) {
   if (delta === null || delta === undefined) return null;

@@ -12,13 +12,14 @@ import {
   pickQueue,
   SOLO_QUEUE,
 } from './riot.js';
-import { toAbsolute, fromAbsolute, isApex } from './ladder.js';
+import { toAbsolute, fromAbsolute, isApex, nextTierEntry, formatRank } from './ladder.js';
 import { lookupPros } from './lolpros.js';
 import { championName } from './champions.js';
 import { startOfDay, localDateKey } from './time.js';
 import { getSnapshot } from './cutoffs.js';
 import {
   formatPlayerRank,
+  formatNextRank,
   formatRanksMessage,
   formatGains,
   formatLastGame,
@@ -386,6 +387,68 @@ export async function commandRemoveMain({ channel, argument }) {
   return result === 'removed'
     ? `${target.riotId} er ikke længere main`
     : `${target.riotId} er ikke sat som main`;
+}
+
+// Used only when a player has no measured wins of their own yet.
+const ASSUMED_LP_PER_WIN = 20;
+
+/**
+ * How far to the next full tier, in LP and in wins.
+ *
+ * Below Master the target is a fixed threshold — the entry of the next tier.
+ * At Master and Grandmaster there is no fixed threshold at all: promotion is
+ * decided by a moving cutoff, so the current one is used instead.
+ */
+export async function commandNextRank({ channel, argument }) {
+  const target = resolveTarget(channel, argument);
+  if (!target) return 'Ingen main sat — brug !nextrank Navn#TAG';
+
+  const { platform } = channels.get(channel);
+  const player = await describePlayer(platform, target);
+
+  if (!player.entry) return `${player.name} er unranked — ingen rank at regne fra`;
+
+  let goalAbsolute;
+  let targetEntry = null;
+  let targetLabel = null;
+
+  const nextTier = nextTierEntry(player.entry.tier);
+
+  if (nextTier) {
+    targetEntry = nextTier;
+    goalAbsolute = toAbsolute(nextTier);
+  } else {
+    if (player.entry.tier === 'CHALLENGER') {
+      return `${player.name} ${formatRank(player.entry, config.rankStyle)} — der er ikke noget over`;
+    }
+
+    const snapshot = await getSnapshot(platform);
+    const cutoff = player.entry.tier === 'MASTER'
+      ? snapshot?.grandmasterCutoff
+      : snapshot?.challengerCutoff;
+
+    if (cutoff === null || cutoff === undefined) {
+      return 'Kunne ikke læse ladderen lige nu';
+    }
+
+    targetLabel = player.entry.tier === 'MASTER' ? 'GRANDMASTER' : 'CHALLENGER';
+    goalAbsolute = toAbsolute({ tier: targetLabel, rank: 'I', leaguePoints: cutoff });
+  }
+
+  const lpNeeded = Math.max(0, Math.round(goalAbsolute - player.absolute));
+  if (lpNeeded === 0) return `${player.name} er der allerede`;
+
+  const measuredGain = store.getAverageLpGain(player.puuid);
+
+  return formatNextRank({
+    name: player.name,
+    entry: player.entry,
+    targetEntry,
+    targetLabel,
+    lpNeeded,
+    lpPerWin: measuredGain ?? ASSUMED_LP_PER_WIN,
+    measured: measuredGain !== null,
+  });
 }
 
 /** Points at the documentation rather than listing everything in chat. */
