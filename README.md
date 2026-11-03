@@ -1,4 +1,4 @@
-# LoL Twitch Bot
+# LoL Twitch Bot (Lavet med AI)
 
 Twitch-chatbot der viser League of Legends-rangdata for en liste af spillere,
 via Riots officielle API.
