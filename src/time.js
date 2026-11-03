@@ -83,7 +83,9 @@ export function formatDate(timestamp, timezone) {
     .filter((part) => part.type !== 'literal');
 
   const field = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${field.day}/${field.month}/${field.year}`;
+
+  // en-GB pads day and month even when asked for "numeric", so strip it here.
+  return `${Number(field.day)}/${Number(field.month)}/${field.year}`;
 }
 
 /** Formats a match duration in seconds as m:ss, matching the reference bot. */
