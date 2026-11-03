@@ -38,21 +38,6 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
-## Drift på en almindelig server
-
-Kun relevant med rigtig root-adgang — ikke på Pelican eller Pterodactyl.
-
-```bash
-sudo useradd --system --home /opt/lol-twitch-bot lolbot
-sudo cp -r . /opt/lol-twitch-bot
-sudo chown -R lolbot:lolbot /opt/lol-twitch-bot
-sudo cp deploy/lol-twitch-bot.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now lol-twitch-bot
-```
-
-Logs: `journalctl -u lol-twitch-bot -f`
-
 ## Logning
 
 Alt konsoloutput skrives også til `logs/bot-ÅÅÅÅ-MM-DD.log`, én fil per dag.
