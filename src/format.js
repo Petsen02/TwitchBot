@@ -51,12 +51,9 @@ export function formatGains({ name, results, lpTotal, measuredCount }) {
 
   const parts = [`${name}:`, `${wins}W ${losses}L`];
 
-  if (measuredCount > 0) {
-    // Flag when some games predate tracking, so a small total is not mistaken
-    // for a flat day.
-    const partial = measuredCount < results.length ? `, ${measuredCount}/${results.length} målt` : '';
-    parts.push(`(${formatLpDelta(lpTotal)}${partial})`);
-  }
+  // The total covers only measured games. Games played before tracking began
+  // are counted in the W/L and the squares, but not in the LP.
+  if (measuredCount > 0) parts.push(`(${formatLpDelta(lpTotal)})`);
 
   return `${parts.join(' ')} ${squares}`;
 }
