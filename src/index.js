@@ -41,7 +41,7 @@ const handlers = new Map([
   ['oldremoveplayer', { level: 'mod', run: commandRemovePlayer }],
   ['oldaddmain', { level: 'mod', run: commandAddMain }],
   ['oldremovemain', { level: 'mod', run: commandRemoveMain }],
-  ['oldregion', { level: 'broadcaster', run: commandRegion }],
+  ['oldregion', { level: 'mod', run: commandRegion }],
 ]);
 
 /** Turns an API failure into something a viewer can act on. */

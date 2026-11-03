@@ -39,10 +39,9 @@ almindelige seere.
 | `!oldremoveplayer Navn#TAG` | mod | Fjerner fra listen |
 | `!oldaddmain Navn#TAG` | mod | Sætter main, og tilføjer til listen hvis den mangler |
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
-| `!oldregion euw1` | broadcaster | Sætter kanalens region |
+| `!oldregion euw1` | mod | Sætter kanalens region |
 
-**mod** dækker både moderatorer og broadcasteren. **broadcaster** er kun
-kanalens ejer.
+**mod** dækker både moderatorer og broadcasteren.
 
 Uautoriseret brug ignoreres i stilhed frem for at få et svar, så en låst
 kommando ikke kan bruges til at spamme chatten.
