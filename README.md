@@ -3,6 +3,13 @@
 Twitch chat bot that reports League of Legends ranked data for a tracked roster
 of players, using the official Riot API.
 
+> **Disclaimer**
+>
+> LoL Twitch Bot is not endorsed by Riot Games and does not reflect the views
+> or opinions of Riot Games or anyone officially involved in producing or
+> managing Riot Games properties. Riot Games and all associated properties are
+> trademarks or registered trademarks of Riot Games, Inc.
+
 ## Commands
 
 Every channel has its own roster, main account and region, so one bot serves
