@@ -29,11 +29,12 @@ navne for samme kommando, og begge svarer for kanalens egen region.
 
 ## Admin-kommandoer
 
-Alt der styrer kanalens opsætning har præfikset `!old`.
+Alt der styrer kanalens opsætning har præfikset `!old`, og er lukket for
+almindelige seere.
 
 | Kommando | Hvem | Virkning |
 |---|---|---|
-| `!oldplayerlist` | alle | Viser kanalens spillerliste |
+| `!oldplayerlist` | mod | Viser kanalens spillerliste |
 | `!oldaddplayer Navn#TAG` | mod | Tilføjer til listen, efter at kontoen er slået op hos Riot |
 | `!oldremoveplayer Navn#TAG` | mod | Fjerner fra listen |
 | `!oldaddmain Navn#TAG` | mod | Sætter main, og tilføjer til listen hvis den mangler |

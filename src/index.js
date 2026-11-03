@@ -36,7 +36,7 @@ const handlers = new Map([
   // Two names, one answer: nobody has to remember which is which.
   ['chal', { level: 'everyone', run: commandCutoff }],
   ['cutoff', { level: 'everyone', run: commandCutoff }],
-  ['oldplayerlist', { level: 'everyone', run: commandPlayerList }],
+  ['oldplayerlist', { level: 'mod', run: commandPlayerList }],
   ['oldaddplayer', { level: 'mod', run: commandAddPlayer }],
   ['oldremoveplayer', { level: 'mod', run: commandRemovePlayer }],
   ['oldaddmain', { level: 'mod', run: commandAddMain }],
