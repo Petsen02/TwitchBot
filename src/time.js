@@ -71,6 +71,21 @@ export function formatClock(timestamp, timezone) {
   }).format(new Date(timestamp));
 }
 
+/** Calendar date in the configured timezone, as d/m/yy. */
+export function formatDate(timestamp, timezone) {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: timezone,
+    day: 'numeric',
+    month: 'numeric',
+    year: '2-digit',
+  })
+    .formatToParts(new Date(timestamp))
+    .filter((part) => part.type !== 'literal');
+
+  const field = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${field.day}/${field.month}/${field.year}`;
+}
+
 /** Formats a match duration in seconds as m:ss, matching the reference bot. */
 export function formatDuration(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60);

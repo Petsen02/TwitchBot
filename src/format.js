@@ -1,6 +1,6 @@
 import { config } from './config.js';
 import { formatRank, formatLpDelta } from './ladder.js';
-import { formatDuration, formatClock } from './time.js';
+import { formatDuration, formatClock, formatDate } from './time.js';
 
 /** The reference bot separates fields with a spaced box-drawing bar. */
 export const SEP = ' │ ';
@@ -113,7 +113,8 @@ function tierLabel(tier) {
 }
 
 /**
- * "EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret kl 10:00 │ næste update er kl 11:00"
+ * "EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 3/11/26 kl 00:00 │
+ *  næste update 4/11/26 kl 00:00"
  *
  * The timestamps are half the point: a cutoff without an age is a number
  * nobody can judge. The region comes from the channel, so one command answers
@@ -132,8 +133,12 @@ export function formatCutoffs({
   if (challengerCutoff !== null) fields.push(`${tierLabel('CHALLENGER')}${challengerCutoff}LP`);
   if (grandmasterCutoff !== null) fields.push(`${tierLabel('GRANDMASTER')}${grandmasterCutoff}LP`);
 
-  if (updatedAt) fields.push(`opdateret kl ${formatClock(updatedAt, timezone)}`);
-  if (nextUpdateAt) fields.push(`næste update er kl ${formatClock(nextUpdateAt, timezone)}`);
+  // The cutoff refreshes daily, so the date carries more than the clock does —
+  // but the clock still matters after a cold start, when it is not midnight.
+  const stamp = (at) => `${formatDate(at, timezone)} kl ${formatClock(at, timezone)}`;
+
+  if (updatedAt) fields.push(`opdateret ${stamp(updatedAt)}`);
+  if (nextUpdateAt) fields.push(`næste update ${stamp(nextUpdateAt)}`);
 
   return `${platform} ${fields.join(SEP)}`;
 }
