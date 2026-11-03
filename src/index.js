@@ -20,6 +20,7 @@ import {
   commandAddMain,
   commandRemoveMain,
   commandRegion,
+  commandCommands,
   truncate,
 } from './commands.js';
 
@@ -36,6 +37,8 @@ const handlers = new Map([
   // Two names, one answer: nobody has to remember which is which.
   ['chal', { level: 'everyone', run: commandCutoff }],
   ['cutoff', { level: 'everyone', run: commandCutoff }],
+  // Open to everyone: a link to the docs is no use if viewers cannot ask for it.
+  ['oldcommands', { level: 'everyone', run: commandCommands }],
   ['oldplayerlist', { level: 'mod', run: commandPlayerList }],
   ['oldaddplayer', { level: 'mod', run: commandAddPlayer }],
   ['oldremoveplayer', { level: 'mod', run: commandRemovePlayer }],

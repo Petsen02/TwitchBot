@@ -31,6 +31,7 @@ almindelige seere.
 
 | Kommando | Hvem | Virkning |
 |---|---|---|
+| `!oldcommands` | alle | Linker hertil |
 | `!oldplayerlist` | mod | Viser kanalens spillerliste |
 | `!oldaddplayer Navn#TAG` | mod | Tilføjer til listen, efter at kontoen er slået op hos Riot |
 | `!oldremoveplayer Navn#TAG` | mod | Fjerner fra listen |

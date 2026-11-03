@@ -388,6 +388,11 @@ export async function commandRemoveMain({ channel, argument }) {
     : `${target.riotId} er ikke sat som main`;
 }
 
+/** Points at the documentation rather than listing everything in chat. */
+export async function commandCommands() {
+  return `Alle kommandoer: ${config.wikiUrl}`;
+}
+
 export async function commandRegion({ channel, argument }) {
   const { platform } = channels.get(channel);
 

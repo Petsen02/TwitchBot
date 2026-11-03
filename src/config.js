@@ -137,6 +137,9 @@ export const config = {
   defaultPlatform,
   rankStyle: parseRankStyle(process.env.RANK_STYLE),
   timezone: process.env.TIMEZONE || 'Europe/Copenhagen',
+  // Where !oldcommands points. Change this to the Pages URL once it is live,
+  // without touching the code.
+  wikiUrl: process.env.WIKI_URL || 'https://github.com/Petsen02/TwitchBot',
   // Ladder position is only interesting near the top; beyond this it is noise.
   ladderPositionLimit: count('LADDER_POSITION_LIMIT', 250),
   // Cutoffs refresh on fixed clock boundaries, so chat shares one figure.
