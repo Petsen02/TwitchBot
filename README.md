@@ -21,7 +21,7 @@ flere streamere uden at de ser hinandens spillere.
 |---|---|
 | `!rank [Navn#TAG]` | `RASMUS EMERALD IV: 2LP` — Master og opefter får også deres placering på ladderen, `(Rank#167)` |
 | `!ranks` | Kanalens liste, nummereret, højeste først |
-| `!gains [Navn#TAG]` | `RASMUS: 3W 2L (+24 LP) 🟩🟩🟥🟩🟥` for i dag |
+| `!gains` / `!session` `[Navn#TAG]` | `RASMUS: 3W 2L (+24 LP) 🟩🟩🟥🟩🟥` for i dag |
 | `!nextrank [Navn#TAG]` | `Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV` |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |

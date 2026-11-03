@@ -32,7 +32,9 @@ import {
 const handlers = new Map([
   ['rank', { level: 'everyone', run: commandRank }],
   ['ranks', { level: 'everyone', run: commandRanks }],
+  // Two names, one answer, as with !chal and !cutoff.
   ['gains', { level: 'everyone', run: commandGains }],
+  ['session', { level: 'everyone', run: commandGains }],
   ['nextrank', { level: 'everyone', run: commandNextRank }],
   ['lastgame', { level: 'everyone', run: commandLastGame }],
   ['lobby', { level: 'everyone', run: commandGame }],
