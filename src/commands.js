@@ -392,9 +392,11 @@ export async function commandRegion({ channel, argument }) {
   const { platform } = channels.get(channel);
 
   // Without an argument the command is a question, so answer it fully: the
-  // current region is useless without knowing what it can be changed to.
+  // current region is useless without knowing what it can be changed to. The
+  // current one is left out of the list, which would otherwise name it twice.
   if (!argument) {
-    return `Kanalens region er ${platform}. Gyldige: ${[...PLATFORMS].join(' ')}`;
+    const others = [...PLATFORMS].filter((p) => p !== platform);
+    return `Kanalens region er ${platform}. Skift til: ${others.join(' ')}`;
   }
 
   if (!channels.setPlatform(channel, argument)) {
