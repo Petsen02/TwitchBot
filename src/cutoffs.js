@@ -62,7 +62,21 @@ async function refresh(platform) {
 export async function getSnapshot(platform) {
   const stored = store.getCutoffSnapshot(platform);
 
-  if (stored && Date.now() < stored.nextUpdateAt) return stored;
+  if (stored) {
+    // A stored snapshot carries the schedule that was configured when it was
+    // taken. If the interval has changed since, the old due time would stand
+    // until it passed — so recompute it against the current setting rather
+    // than reporting a schedule that no longer applies.
+    const expected = nextBoundary(stored.updatedAt);
+
+    if (stored.nextUpdateAt !== expected) {
+      stored.nextUpdateAt = expected;
+      store.setCutoffSnapshot(platform, stored);
+      store.save();
+    }
+
+    if (Date.now() < stored.nextUpdateAt) return stored;
+  }
 
   try {
     return await refresh(platform);
