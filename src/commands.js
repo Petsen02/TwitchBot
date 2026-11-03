@@ -447,7 +447,6 @@ export async function commandNextRank({ channel, argument }) {
     targetLabel,
     lpNeeded,
     lpPerWin: measuredGain ?? ASSUMED_LP_PER_WIN,
-    measured: measuredGain !== null,
   });
 }
 

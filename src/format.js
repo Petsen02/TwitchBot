@@ -144,31 +144,27 @@ export function formatCutoffs({
 }
 
 /**
- * "Petsen SILVER II: 40LP │ mangler 160 LP til GOLD IV │ 8 wins á 20 LP"
+ * "Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV"
+ *
+ * Below Master the answer is a number of wins, because the LP distance to a
+ * fixed threshold is not something a player acts on. At Master and above there
+ * is no fixed threshold — the target is a moving cutoff — so the LP gap is the
+ * meaningful figure and is shown alongside.
  *
  * The win count uses the player's own measured gains where we have them, and
- * shows the LP figure it divided by. Without measurements the count stands
- * alone, computed from a default.
+ * falls back to a default until a win has been measured.
  */
-export function formatNextRank({ name, entry, targetEntry, targetLabel, lpNeeded, lpPerWin, measured }) {
+export function formatNextRank({ name, entry, targetEntry, targetLabel, lpNeeded, lpPerWin }) {
   const current = `${name} ${formatRank(entry, config.rankStyle)}`;
+  const wins = Math.ceil(lpNeeded / lpPerWin);
+  const plural = `${wins} ${wins === 1 ? 'win' : 'wins'}`;
 
-  // The target is a threshold, not a standing, so it carries no LP figure.
-  const target = targetEntry ? formatTier(targetEntry, config.rankStyle) : targetLabel;
-
-  const fields = [current, `mangler ${lpNeeded} LP til ${target}`];
-
-  if (lpPerWin) {
-    const wins = Math.ceil(lpNeeded / lpPerWin);
-    const label = `${wins} ${wins === 1 ? 'win' : 'wins'}`;
-
-    // With measured gains the LP figure is shown, which is also what tells a
-    // reader the number came from this player's own games rather than a
-    // default. Without it, the bare win count stands on its own.
-    fields.push(measured ? `${label} á ${Math.round(lpPerWin)} LP` : label);
+  if (targetEntry) {
+    // A threshold carries no LP of its own, so the target is named bare.
+    return [current, `mangler ${plural} til ${formatTier(targetEntry, config.rankStyle)}`].join(SEP);
   }
 
-  return fields.join(SEP);
+  return [current, `mangler ${lpNeeded} LP til ${targetLabel}`, plural].join(SEP);
 }
 
 /** "Avg rank: EMERALD II: 35LP │ Pros: Caps (Azir)" */
