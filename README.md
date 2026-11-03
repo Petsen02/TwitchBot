@@ -21,7 +21,7 @@ flere streamere uden at de ser hinandens spillere.
 | `!ranks` | Kanalens liste, nummereret, højeste først |
 | `!gains [Navn#TAG]` | `RASMUS: 3W 2L (+24 LP) 🟩🟩🟥🟩🟥` for i dag |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
-| `!game [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
+| `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
 | `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
 
 ## Admin-kommandoer

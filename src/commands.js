@@ -220,7 +220,7 @@ export async function commandLastGame({ channel, argument }) {
 
 export async function commandGame({ channel, argument }) {
   const target = resolveTarget(channel, argument);
-  if (!target) return 'Ingen main sat — brug !game Navn#TAG';
+  if (!target) return 'Ingen main sat — brug !lobby Navn#TAG';
 
   const { platform } = channels.get(channel);
   const account = await getAccount(platform, target);

@@ -53,7 +53,7 @@ const checks = [
   ['!ranks', commandRanks],
   ['!gains', commandGains],
   ['!lastgame', commandLastGame],
-  ['!game', commandGame],
+  ['!lobby', commandGame],
   ['!chal / !cutoff', commandCutoff],
   ['!oldplayerlist', commandPlayerList],
 ];

@@ -33,7 +33,7 @@ const handlers = new Map([
   ['ranks', { level: 'everyone', run: commandRanks }],
   ['gains', { level: 'everyone', run: commandGains }],
   ['lastgame', { level: 'everyone', run: commandLastGame }],
-  ['game', { level: 'everyone', run: commandGame }],
+  ['lobby', { level: 'everyone', run: commandGame }],
   // Two names, one answer: nobody has to remember which is which.
   ['chal', { level: 'everyone', run: commandCutoff }],
   ['cutoff', { level: 'everyone', run: commandCutoff }],
