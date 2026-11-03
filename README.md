@@ -38,21 +38,6 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
-## Udseende
-
-`RANK_STYLE` er som standard `emotes`, som skriver tier-navnet i stedet for
-bogstavet (`EMERALD IV: 77LP`). 7TV erstatter navnet med en kanal-emote.
-
-7TV skelner mellem store og små bogstaver, så kanalen skal have én emote per
-tier, navngivet præcis `IRON`, `BRONZE`, `SILVER`, `GOLD`, `PLATINUM`,
-`EMERALD`, `DIAMOND`, `MASTER`, `GRANDMASTER` og `CHALLENGER`.
-
-Master og opefter får intet kolon, fordi `CHALLENGER:` ikke ville matche
-emoten — navnet skal stå alene mellem mellemrum. Seere uden 7TV-udvidelsen ser
-tier-navnet som almindelig tekst, hvilket stadig læses fint.
-
-`RANK_STYLE=letters` giver `E4 77LP` i stedet.
-
 ## Placeringer og cutoffs
 
 Riot udgiver hverken en spillers placering på ladderen eller den LP der skal
