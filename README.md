@@ -72,5 +72,5 @@ Singapore.
 - Rank, kampe og live-kampe: [Riot Games API](https://developer.riotgames.com/apis)
 - Championnavne: Data Dragon
 - Pro-spillere: [lolpros.gg](https://lolpros.gg) — udokumenteret internt
-  endpoint, så `!game` falder tilbage til kun gennemsnitsrank hvis det ændrer
+  endpoint, så `!lobby` falder tilbage til kun gennemsnitsrank hvis det ændrer
   sig. Deaktiveres ikke separat.

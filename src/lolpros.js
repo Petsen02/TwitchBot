@@ -5,10 +5,10 @@ import { TtlCache } from './cache.js';
  *
  * lolpros publishes no documented API; this is the same internal endpoint their
  * own site uses, and it can change without notice. Every failure here is
- * swallowed so that !game still answers with average rank when lolpros is
+ * swallowed so that !lobby still answers with average rank when lolpros is
  * unreachable — the pro names are a bonus, never a dependency.
  *
- * Results are cached for a day (misses included), so a channel hammering !game
+ * Results are cached for a day (misses included), so a channel hammering !lobby
  * costs lolpros almost nothing.
  */
 
@@ -50,7 +50,7 @@ export function lookupPro({ gameName, tagLine }) {
         }
       }
     } catch {
-      // Treated as "not a pro" for this cache window rather than failing !game.
+      // Treated as "not a pro" for this cache window rather than failing !lobby.
     }
 
     return null;
