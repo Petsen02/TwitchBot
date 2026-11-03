@@ -109,8 +109,18 @@ async function bootstrap() {
     }
   }
 
+  // A main that is not on the roster is never polled, so !gains would have no
+  // LP for it. Seeding has to add it, exactly as !oldaddmain does.
   const main = seedMain();
-  if (main) channels.setMain(first, main.riotId);
+  if (main) {
+    try {
+      const account = await getAccount(existing.platform, main);
+      channels.addPlayer(first, account);
+      channels.setMain(first, `${account.gameName}#${account.tagLine}`);
+    } catch (error) {
+      console.error(`[bootstrap] main ${main.riotId}: ${error.message}`);
+    }
+  }
 
   channels.save();
   return names;

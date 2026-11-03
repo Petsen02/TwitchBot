@@ -116,6 +116,13 @@ export class Store {
 
   setCutoffSnapshot(platform, snapshot) {
     this.#state.cutoffs ??= {};
+
+    // Cutoffs were stored flat before regions existed. Those leftover keys are
+    // harmless but never go away on their own, so drop them when passing by.
+    for (const [key, value] of Object.entries(this.#state.cutoffs)) {
+      if (typeof value !== 'object' || value === null) delete this.#state.cutoffs[key];
+    }
+
     this.#state.cutoffs[platform] = snapshot;
   }
 
