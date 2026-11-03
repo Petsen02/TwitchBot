@@ -1,3 +1,5 @@
+<img src="assets/logo.png" alt="" width="140" align="right">
+
 # LoL Twitch Bot (Lavet med AI)
 
 Twitch-chatbot der viser League of Legends-rangdata for en liste af spillere,
