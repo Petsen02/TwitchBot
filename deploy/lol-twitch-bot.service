@@ -1,0 +1,33 @@
+[Unit]
+Description=League of Legends Twitch bot
+Documentation=https://developer.riotgames.com/apis
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lolbot
+Group=lolbot
+WorkingDirectory=/opt/lol-twitch-bot
+ExecStart=/usr/bin/node src/index.js
+
+# LP history only exists while the bot is running, so restart aggressively.
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lolbot
+
+# The bot needs no privileges beyond writing its own data directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+ReadWritePaths=/opt/lol-twitch-bot/data
+
+[Install]
+WantedBy=multi-user.target

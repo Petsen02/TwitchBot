@@ -1,0 +1,17 @@
+{
+  "name": "lol-twitch-bot",
+  "version": "1.0.0",
+  "description": "Twitch chat bot that reports League of Legends rank via the Riot API",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "check": "node src/check.js"
+  },
+  "dependencies": {
+    "tmi.js": "^1.8.5"
+  }
+}
