@@ -38,13 +38,6 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
-## Logning
-
-Alt konsoloutput skrives også til `logs/bot-ÅÅÅÅ-MM-DD.log`, én fil per dag.
-Et uventet nedbrud skriver desuden en rapport i `crashes/` med fejlen og de
-sidste 150 linjer op til den — det panelets konsol kaster væk ved genstart.
-Filer ældre end 14 dage ryddes automatisk.
-
 ## Datakilder
 
 - Rank, kampe og live-kampe: [Riot Games API](https://developer.riotgames.com/apis)
