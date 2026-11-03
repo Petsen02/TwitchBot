@@ -15,8 +15,6 @@ via Riots officielle API.
 Hver kanal har sin egen spillerliste, main og region, så én bot kan betjene
 flere streamere uden at de ser hinandens spillere.
 
-### Alle
-
 | Kommando | Svar |
 |---|---|
 | `!rank [Navn#TAG]` | `RASMUS EMERALD IV: 2LP` — apex-spillere får også `(Rank#167)` |
@@ -25,25 +23,25 @@ flere streamere uden at de ser hinandens spillere.
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!game [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
 | `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
-| `!oldplayerlist` | Kanalens spillerliste |
 
 Uden argument bruger kommandoerne kanalens main. `!chal` og `!cutoff` er to
 navne for samme kommando, og begge svarer for kanalens egen region.
 
-### Moderatorer og broadcaster
+## Admin-kommandoer
 
-| Kommando | Virkning |
-|---|---|
-| `!oldaddplayer Navn#TAG` | Tilføjer til listen, efter at kontoen er slået op hos Riot |
-| `!oldremoveplayer Navn#TAG` | Fjerner fra listen |
-| `!oldaddmain Navn#TAG` | Sætter main, og tilføjer til listen hvis den mangler |
-| `!oldremovemain Navn#TAG` | Fjerner main |
+Alt der styrer kanalens opsætning har præfikset `!old`.
 
-### Kun broadcaster
+| Kommando | Hvem | Virkning |
+|---|---|---|
+| `!oldplayerlist` | alle | Viser kanalens spillerliste |
+| `!oldaddplayer Navn#TAG` | mod | Tilføjer til listen, efter at kontoen er slået op hos Riot |
+| `!oldremoveplayer Navn#TAG` | mod | Fjerner fra listen |
+| `!oldaddmain Navn#TAG` | mod | Sætter main, og tilføjer til listen hvis den mangler |
+| `!oldremovemain Navn#TAG` | mod | Fjerner main |
+| `!oldregion euw1` | broadcaster | Sætter kanalens region |
 
-| Kommando | Virkning |
-|---|---|
-| `!oldregion euw1` | Sætter kanalens region |
+**mod** dækker både moderatorer og broadcasteren. **broadcaster** er kun
+kanalens ejer.
 
 Uautoriseret brug ignoreres i stilhed frem for at få et svar, så en låst
 kommando ikke kan bruges til at spamme chatten.
