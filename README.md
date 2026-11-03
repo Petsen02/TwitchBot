@@ -66,28 +66,6 @@ tier-navnet som almindelig tekst, hvilket stadig læses fint.
 
 `RANK_STYLE=letters` giver `E4 77LP` i stedet.
 
-## Rate limits og polling
-
-En personal-nøgle hos Riot tillader 20 forespørgsler i sekundet og 100 per to
-minutter, og det andet vindue er det bindende. Alle kald går gennem en rate
-limiter der **sætter i kø** frem for at lade forespørgsler fejle med 429.
-Budgettet holdes per region, sådan som Riot selv tæller.
-
-Pollingen er adaptiv, og det er dét der gør mange kanaler muligt. De fleste
-konti er inaktive det meste af døgnet, og at polle dem alle hvert minut er
-præcis det der ville sprænge budgettet. Inaktive konti tjekkes hvert tiende
-minut og skifter først til det hurtige interval når de faktisk spiller.
-
-Målingen bliver ikke mindre præcis: der skal kun falde højst én ranked kamp
-mellem to aflæsninger, og en LoL-kamp varer langt længere end ti minutter.
-
-Tredive konti koster omkring fem forespørgsler i minuttet i hvile, mod et
-budget på halvtreds.
-
-**En personal-nøgle er ifølge Riot til personlige projekter, ikke produktion.**
-At køre i fremmede streameres kanaler er svært at kalde personligt brug, så
-ansøg om en production-nøgle inden det vokser.
-
 ## Placeringer og cutoffs
 
 Riot udgiver hverken en spillers placering på ladderen eller den LP der skal
