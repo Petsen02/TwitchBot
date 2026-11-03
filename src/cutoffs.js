@@ -2,6 +2,7 @@ import { config } from './config.js';
 import { store } from './store.js';
 import { channels } from './channels.js';
 import { getCutoffs } from './riot.js';
+import { startOfDay } from './time.js';
 
 /**
  * Scheduled cutoff snapshots, one per region.
@@ -16,9 +17,22 @@ import { getCutoffs } from './riot.js';
  * the last known value.
  */
 
-/** Epoch ms of the next fixed boundary at or after `from`. */
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Epoch ms of the next fixed boundary at or after `from`.
+ *
+ * Intervals shorter than a day align to the UTC clock, which lands on the hour
+ * and half hour everywhere that matters. A daily interval instead aligns to
+ * local midnight: aligning it to UTC would fire at 01:00 or 02:00 Danish time
+ * depending on daylight saving, which is not what "updates at 00:00" means.
+ */
 export function nextBoundary(from = Date.now(), intervalMs = config.cutoffRefreshMs) {
-  return Math.ceil((from + 1) / intervalMs) * intervalMs;
+  if (intervalMs < DAY_MS) return Math.ceil((from + 1) / intervalMs) * intervalMs;
+
+  // Adding a full day always lands on the next calendar date — daylight saving
+  // shifts an hour at most — so its local midnight is the next one.
+  return startOfDay(config.timezone, new Date(from + DAY_MS));
 }
 
 async function refresh(platform) {

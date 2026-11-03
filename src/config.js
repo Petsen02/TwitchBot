@@ -137,7 +137,8 @@ export const config = {
   // Ladder position is only interesting near the top; beyond this it is noise.
   ladderPositionLimit: count('LADDER_POSITION_LIMIT', 250),
   // Cutoffs refresh on fixed clock boundaries, so chat shares one figure.
-  cutoffRefreshMs: seconds('CUTOFF_REFRESH_MINUTES', 60) * 60,
+  // 1440 means once a day at local midnight.
+  cutoffRefreshMs: seconds('CUTOFF_REFRESH_MINUTES', 1440) * 60,
   rankCacheMs: seconds('RANK_CACHE_SECONDS', 60),
   commandCooldownMs: seconds('COMMAND_COOLDOWN_SECONDS', 5),
   // Accounts that are actually playing are polled often enough that two games

@@ -98,7 +98,10 @@ below any position worth reporting.
 Positions are shown only down to `LADDER_POSITION_LIMIT` (default 250).
 
 Cutoffs are refreshed on **fixed clock boundaries** rather than a rolling
-timer — `CUTOFF_REFRESH_MINUTES=60` means on the hour, every hour. A rolling
+timer. The default `CUTOFF_REFRESH_MINUTES=1440` means once a day at local
+midnight; `60` would mean on the hour. A daily interval aligns to midnight in
+`TIMEZONE`, not UTC, because aligning it to UTC would fire at 01:00 or 02:00
+Danish time depending on daylight saving. A rolling
 cache would give each viewer a slightly different number at a slightly
 different age; a scheduled one gives chat a single quotable figure, and `!chal`
 reports both when it was taken and when it is taken next. The snapshot is
