@@ -39,6 +39,11 @@ loadEnvFile();
 // apex ladders live on the platform host (euw1); account-v1 and match-v5 live
 // on the wider regional host (europe). Mixing them up is the classic source of
 // mystery 404s.
+//
+// ph2 and th2 are deliberately absent: Riot folded the Philippines and
+// Thailand into Singapore, and those hostnames no longer resolve. Accepting
+// them would let a channel pick a region that can never answer, failing as a
+// network error rather than as an unknown region.
 export const PLATFORM_TO_REGION = {
   br1: 'americas',
   na1: 'americas',
@@ -53,8 +58,6 @@ export const PLATFORM_TO_REGION = {
   jp1: 'asia',
   tw2: 'sea',
   sg2: 'sea',
-  ph2: 'sea',
-  th2: 'sea',
   vn2: 'sea',
   oc1: 'sea',
 };

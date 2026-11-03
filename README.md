@@ -38,6 +38,34 @@ almindelige seere.
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
 
+## Regioner
+
+Koden du skriver til `!oldregion`, og hvilken server den dækker. Riots egne
+navne, bekræftet mod deres status-API.
+
+| Kode | Server |
+|---|---|
+| `euw1` | EU West |
+| `eun1` | EU Nordic & East |
+| `tr1` | Tyrkiet |
+| `ru` | Rusland |
+| `me1` | Mellemøsten og Nordafrika |
+| `na1` | Nordamerika |
+| `br1` | Brasilien |
+| `la1` | Latinamerika Nord |
+| `la2` | Latinamerika Syd |
+| `kr` | Korea |
+| `jp1` | Japan |
+| `oc1` | Oceanien |
+| `sg2` | Singapore |
+| `tw2` | Taiwan |
+| `vn2` | Vietnam |
+
+Filippinerne og Thailand har ikke længere egne servere — de er lagt ind under
+Singapore.
+
+`!oldregion` uden argument viser kanalens nuværende region og hele listen.
+
 ## Datakilder
 
 - Rank, kampe og live-kampe: [Riot Games API](https://developer.riotgames.com/apis)

@@ -390,7 +390,12 @@ export async function commandRemoveMain({ channel, argument }) {
 
 export async function commandRegion({ channel, argument }) {
   const { platform } = channels.get(channel);
-  if (!argument) return `Kanalens region er ${platform}. Skift med !oldregion euw1`;
+
+  // Without an argument the command is a question, so answer it fully: the
+  // current region is useless without knowing what it can be changed to.
+  if (!argument) {
+    return `Kanalens region er ${platform}. Gyldige: ${[...PLATFORMS].join(' ')}`;
+  }
 
   if (!channels.setPlatform(channel, argument)) {
     return `Ukendt region "${argument}". Gyldige: ${[...PLATFORMS].join(', ')}`;
