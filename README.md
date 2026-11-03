@@ -24,9 +24,6 @@ flere streamere uden at de ser hinandens spillere.
 | `!game [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
 | `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
 
-Uden argument bruger kommandoerne kanalens main. `!chal` og `!cutoff` er to
-navne for samme kommando, og begge svarer for kanalens egen region.
-
 ## Admin-kommandoer
 
 Alt der styrer kanalens opsætning har præfikset `!old`, og er lukket for
