@@ -76,6 +76,10 @@ function explain(error) {
 function permitted(level, tags, channel) {
   if (level === 'everyone') return true;
 
+  // Operators are listed in BOT_OWNERS and pass everywhere, so the bot can be
+  // managed in a channel without first being made a moderator there.
+  if (config.botOwners.has(tags.username ?? '')) return true;
+
   const isBroadcaster =
     tags.badges?.broadcaster === '1' || tags.username === normalizeChannel(channel);
   if (level === 'broadcaster') return isBroadcaster;

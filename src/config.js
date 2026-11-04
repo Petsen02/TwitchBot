@@ -113,6 +113,16 @@ function parseRankStyle(raw) {
   throw new Error(`RANK_STYLE skal være "letters" eller "emotes", fik "${raw}"`);
 }
 
+/** Comma-separated Twitch logins, lowercased for comparison with chat tags. */
+function parseOwners(raw) {
+  return new Set(
+    (raw || '')
+      .split(',')
+      .map((name) => name.trim().toLowerCase().replace(/^@/, ''))
+      .filter(Boolean),
+  );
+}
+
 function seconds(key, fallback) {
   const value = Number(process.env[key] ?? fallback);
   if (!Number.isFinite(value) || value <= 0) throw new Error(`${key} skal være et positivt tal`);
@@ -135,9 +145,10 @@ export const config = {
     ],
   },
   defaultPlatform,
-  // The Twitch login that operates the bot. Only this account can remove the
-  // bot from a channel it is not the broadcaster of.
-  botOwner: (process.env.BOT_OWNER || '').trim().toLowerCase(),
+  // Twitch logins that operate the bot. They can run every command in every
+  // channel, whether or not they are a moderator there — including removing
+  // the bot from a channel they have no account in.
+  botOwners: parseOwners(process.env.BOT_OWNERS ?? process.env.BOT_OWNER),
   rankStyle: parseRankStyle(process.env.RANK_STYLE),
   timezone: process.env.TIMEZONE || 'Europe/Copenhagen',
   // Where !oldcommands points. Change this to the Pages URL once it is live,

@@ -461,7 +461,7 @@ export async function commandNextRank({ channel, argument }) {
  * The roster is kept, so coming back costs nothing.
  */
 export async function commandLeave({ channel, argument, tags, part }) {
-  const isOwner = config.botOwner && tags?.username === config.botOwner;
+  const isOwner = config.botOwners.has(tags?.username ?? '');
   const isBroadcaster =
     tags?.badges?.broadcaster === '1' || tags?.username === normalizeChannel(channel);
 
@@ -469,7 +469,7 @@ export async function commandLeave({ channel, argument, tags, part }) {
 
   if (target !== channel) {
     // Naming another channel is an operator action, not a moderation one.
-    if (!isOwner) return 'Kun botejeren kan fjerne botten fra en anden kanal';
+    if (!isOwner) return 'Kun en botejer kan fjerne botten fra en anden kanal';
   } else if (!isBroadcaster && !isOwner) {
     return 'Kun kanalens ejer kan fjerne botten';
   }
