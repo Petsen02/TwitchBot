@@ -170,15 +170,31 @@ export const config = {
   activeWindowMs: seconds('ACTIVE_WINDOW_MINUTES', 45) * 60,
 };
 
+/** Comma-separated channel names, normalised the way Twitch reports them. */
+function channelList(raw) {
+  return (raw || '')
+    .split(',')
+    .map((c) => c.trim().toLowerCase().replace(/^#/, ''))
+    .filter(Boolean);
+}
+
+/**
+ * Channels the bot should leave, listed in .env.
+ *
+ * !oldleave does the same thing, but in public. Removing a streamer is not
+ * something that belongs in their chat for their viewers to read, so it can
+ * be done here instead and takes effect on the next restart.
+ */
+export function disabledChannels() {
+  return channelList(process.env.DISABLED_CHANNELS);
+}
+
 /**
  * Channels listed in .env are joined and created on startup; everything after
  * that is managed from chat.
  */
 export function bootstrapChannels() {
-  return (process.env.TWITCH_CHANNELS || '')
-    .split(',')
-    .map((c) => c.trim().toLowerCase().replace(/^#/, ''))
-    .filter(Boolean);
+  return channelList(process.env.TWITCH_CHANNELS);
 }
 
 /** Optional seed roster for the first channel, used only when it is empty. */

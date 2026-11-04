@@ -1,6 +1,13 @@
 import tmi from 'tmi.js';
 import { installCrashHandlers, logPaths } from './logger.js';
-import { config, getTwitchConfig, bootstrapChannels, seedPlayers, seedMain } from './config.js';
+import {
+  config,
+  getTwitchConfig,
+  bootstrapChannels,
+  disabledChannels,
+  seedPlayers,
+  seedMain,
+} from './config.js';
 import { channels, normalizeChannel } from './channels.js';
 import { RiotError, getAccount } from './riot.js';
 import { startTracker } from './tracker.js';
@@ -107,6 +114,13 @@ function onCooldown(channel, command) {
 async function bootstrap() {
   const names = bootstrapChannels();
   for (const name of names) channels.ensure(name);
+
+  // Applied after the joins, so a channel named in both lists stays removed.
+  for (const name of disabledChannels()) {
+    if (channels.deactivate(name) === 'removed') {
+      console.log(`[bootstrap] forlader #${name} (DISABLED_CHANNELS)`);
+    }
+  }
 
   const first = names[0];
   if (!first) return names;
