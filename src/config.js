@@ -179,19 +179,12 @@ function channelList(raw) {
 }
 
 /**
- * Channels the bot should leave, listed in .env.
+ * The channels the bot belongs in — the whole list, not additions to it.
  *
- * !oldleave does the same thing, but in public. Removing a streamer is not
- * something that belongs in their chat for their viewers to read, so it can
- * be done here instead and takes effect on the next restart.
- */
-export function disabledChannels() {
-  return channelList(process.env.DISABLED_CHANNELS);
-}
-
-/**
- * Channels listed in .env are joined and created on startup; everything after
- * that is managed from chat.
+ * Anything missing from here is left on the next start, so a channel is
+ * removed by deleting its name from this line rather than by announcing it in
+ * the channel. Rosters survive, so a name removed by mistake costs a restart,
+ * not a rebuild.
  */
 export function bootstrapChannels() {
   return channelList(process.env.TWITCH_CHANNELS);

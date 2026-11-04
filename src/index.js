@@ -1,13 +1,6 @@
 import tmi from 'tmi.js';
 import { installCrashHandlers, logPaths } from './logger.js';
-import {
-  config,
-  getTwitchConfig,
-  bootstrapChannels,
-  disabledChannels,
-  seedPlayers,
-  seedMain,
-} from './config.js';
+import { config, getTwitchConfig, bootstrapChannels, seedPlayers, seedMain } from './config.js';
 import { channels, normalizeChannel } from './channels.js';
 import { RiotError, getAccount } from './riot.js';
 import { startTracker } from './tracker.js';
@@ -107,18 +100,20 @@ function onCooldown(channel, command) {
 }
 
 /**
- * Creates the channels named in .env and, the first time only, copies any
- * PLAYERS seed into the first of them. After that the roster lives in chat
- * commands and the seed is ignored.
+ * Brings the bot's channels in line with .env, and, the first time only,
+ * copies any PLAYERS seed into the first of them. After that the roster lives
+ * in chat commands and the seed is ignored.
  */
 async function bootstrap() {
   const names = bootstrapChannels();
   for (const name of names) channels.ensure(name);
 
-  // Applied after the joins, so a channel named in both lists stays removed.
-  for (const name of disabledChannels()) {
-    if (channels.deactivate(name) === 'removed') {
-      console.log(`[bootstrap] forlader #${name} (DISABLED_CHANNELS)`);
+  // TWITCH_CHANNELS is the whole list, so anything not on it is left behind.
+  // The entry is kept, not deleted: restoring a name restores its roster too.
+  const wanted = new Set(names);
+  for (const name of channels.names()) {
+    if (!wanted.has(name) && channels.deactivate(name) === 'removed') {
+      console.log(`[bootstrap] forlader #${name} — står ikke i TWITCH_CHANNELS`);
     }
   }
 
