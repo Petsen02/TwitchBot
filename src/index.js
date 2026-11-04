@@ -22,6 +22,7 @@ import {
   commandRegion,
   commandCommands,
   commandNextRank,
+  commandLeave,
   truncate,
 } from './commands.js';
 
@@ -49,6 +50,8 @@ const handlers = new Map([
   ['oldaddmain', { level: 'mod', run: commandAddMain }],
   ['oldremovemain', { level: 'mod', run: commandRemoveMain }],
   ['oldregion', { level: 'mod', run: commandRegion }],
+  // Checks its own permissions: broadcaster here, operator anywhere.
+  ['oldleave', { level: 'everyone', run: commandLeave }],
 ]);
 
 /** Turns an API failure into something a viewer can act on. */
@@ -194,6 +197,8 @@ async function main() {
         channel: normalizeChannel(channel),
         argument: rest.join(' ').trim(),
         viewer,
+        tags,
+        part: (name) => client.part(`#${name}`).catch(() => {}),
       });
 
       await client.say(channel, truncate(`@${viewer} ${reply}`));

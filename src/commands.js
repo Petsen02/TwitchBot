@@ -1,5 +1,5 @@
 import { config, parseRiotId, PLATFORMS } from './config.js';
-import { channels } from './channels.js';
+import { channels, normalizeChannel } from './channels.js';
 import { store } from './store.js';
 import { TtlCache } from './cache.js';
 import {
@@ -448,6 +448,42 @@ export async function commandNextRank({ channel, argument }) {
     lpNeeded,
     lpPerWin: measuredGain ?? ASSUMED_LP_PER_WIN,
   });
+}
+
+/**
+ * Removes the bot from a channel.
+ *
+ * A broadcaster can always remove it from their own channel — needing to ask
+ * the operator to be left alone would be the wrong way round. The operator can
+ * additionally name any channel, to remove it from somewhere they have no
+ * account in.
+ *
+ * The roster is kept, so coming back costs nothing.
+ */
+export async function commandLeave({ channel, argument, tags, part }) {
+  const isOwner = config.botOwner && tags?.username === config.botOwner;
+  const isBroadcaster =
+    tags?.badges?.broadcaster === '1' || tags?.username === normalizeChannel(channel);
+
+  const target = argument ? normalizeChannel(argument) : channel;
+
+  if (target !== channel) {
+    // Naming another channel is an operator action, not a moderation one.
+    if (!isOwner) return 'Kun botejeren kan fjerne botten fra en anden kanal';
+  } else if (!isBroadcaster && !isOwner) {
+    return 'Kun kanalens ejer kan fjerne botten';
+  }
+
+  if (channels.deactivate(target) === 'unknown') {
+    return `Botten er ikke i #${target}`;
+  }
+
+  // Leave immediately rather than at the next restart.
+  await part?.(target);
+
+  return target === channel
+    ? 'Botten forlader kanalen nu. Spillerlisten gemmes — tilføj botten igen for at få den tilbage'
+    : `Botten er fjernet fra #${target}`;
 }
 
 /** Points at the documentation rather than listing everything in chat. */

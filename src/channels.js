@@ -50,23 +50,56 @@ class ChannelStore {
       platform: defaultPlatform,
       players: [],
       main: null,
+      active: true,
     };
 
     const channel = this.#state.channels[key];
     channel.players ??= [];
     channel.platform ??= defaultPlatform;
+    channel.active ??= true;
 
     return channel;
   }
 
+  /** Channels the bot should be in. Removed ones are kept but not listed. */
   names() {
-    return Object.keys(this.#state.channels);
+    return Object.entries(this.#state.channels)
+      .filter(([, channel]) => channel.active !== false)
+      .map(([name]) => name);
   }
 
-  /** Ensures a channel exists so the bot joins it on the next start. */
+  /** Ensures a channel exists and is active, so the bot joins it. */
   ensure(name) {
-    this.get(name);
+    const channel = this.get(name);
+
+    // Listing a removed channel in TWITCH_CHANNELS again brings it back, with
+    // its roster intact.
+    if (channel.active === false) {
+      channel.active = true;
+      this.save();
+    }
+
     return this;
+  }
+
+  /**
+   * Removes the bot from a channel.
+   *
+   * The entry is kept and only marked inactive: a streamer who comes back
+   * should not have to rebuild their roster, and the LP history of their
+   * players stays attached to the accounts regardless.
+   *
+   * @returns 'removed' | 'unknown'
+   */
+  deactivate(name) {
+    const key = normalizeChannel(name);
+    const channel = this.#state.channels[key];
+
+    if (!channel || channel.active === false) return 'unknown';
+
+    channel.active = false;
+    this.save();
+    return 'removed';
   }
 
   setPlatform(name, platform) {
@@ -139,6 +172,9 @@ class ChannelStore {
     const seen = new Map();
 
     for (const [name, channel] of Object.entries(this.#state.channels)) {
+      // Nothing to poll for a channel the bot has left.
+      if (channel.active === false) continue;
+
       for (const player of channel.players ?? []) {
         const key = `${channel.platform}:${player.puuid}`;
         if (!seen.has(key)) {

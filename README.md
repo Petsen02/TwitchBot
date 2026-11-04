@@ -32,6 +32,10 @@ flere streamere uden at de ser hinandens spillere.
 Alt der styrer kanalens opsætning har præfikset `!old`, og er lukket for
 almindelige seere.
 
+`!oldleave` kan kun køres af kanalens ejer — moderatorer kan ikke smide botten
+ud. Spillerlisten gemmes, så botten kan tilføjes igen uden at sætte noget op
+på ny.
+
 | Kommando | Hvem | Virkning |
 |---|---|---|
 | `!oldcommands` | alle | Linker hertil |
@@ -41,6 +45,7 @@ almindelige seere.
 | `!oldaddmain Navn#TAG` | mod | Sætter main, og tilføjer til listen hvis den mangler |
 | `!oldremovemain Navn#TAG` | mod | Fjerner main |
 | `!oldregion euw1` | mod | Sætter kanalens region |
+| `!oldleave` | kanalejer | Fjerner botten fra kanalen |
 
 ## Rang-ikoner med 7TV
 

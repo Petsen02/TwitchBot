@@ -135,6 +135,9 @@ export const config = {
     ],
   },
   defaultPlatform,
+  // The Twitch login that operates the bot. Only this account can remove the
+  // bot from a channel it is not the broadcaster of.
+  botOwner: (process.env.BOT_OWNER || '').trim().toLowerCase(),
   rankStyle: parseRankStyle(process.env.RANK_STYLE),
   timezone: process.env.TIMEZONE || 'Europe/Copenhagen',
   // Where !oldcommands points. Change this to the Pages URL once it is live,
