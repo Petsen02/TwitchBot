@@ -198,6 +198,12 @@ export const config = {
   idlePollMs: seconds('IDLE_POLL_SECONDS', 600),
   // How long after a game a player still counts as active.
   activeWindowMs: seconds('ACTIVE_WINDOW_MINUTES', 45) * 60,
+  // The OBS overlay. Off unless a port is set, because a chat bot has no
+  // business listening for connections nobody asked for. The path is a
+  // password in all but name: anyone who has the URL can read the figures,
+  // so it should not be guessable.
+  overlayPort: process.env.OVERLAY_PORT ? count('OVERLAY_PORT', 0) : null,
+  overlayPath: (process.env.OVERLAY_PATH || 'overlay').replace(/^\/+|\/+$/g, ''),
 };
 
 /** Comma-separated channel names, normalised the way Twitch reports them. */

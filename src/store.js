@@ -143,8 +143,8 @@ export class Store {
     return Boolean(this.#state.accounts[puuid]?.matches?.[matchId]);
   }
 
-  recordMatch(puuid, riotId, matchId, { lpDelta, at }) {
-    const record = { lpDelta, at: at ?? Date.now() };
+  recordMatch(puuid, riotId, matchId, { lpDelta, at, win = null }) {
+    const record = { lpDelta, win, at: at ?? Date.now() };
     this.#account(puuid, riotId).matches[matchId] = record;
     this.#db?.putMatch(puuid, matchId, record);
   }
@@ -274,6 +274,41 @@ export class Store {
   /** Every watch-list account, shaped like a roster entry. */
   watchedAccounts() {
     return Object.values(this.#state.watch ?? {});
+  }
+
+  /**
+   * Wins and losses recorded for this account since a point in time.
+   *
+   * Matches whose result we never learned are left out of both counts rather
+   * than guessed at, so the figures only ever understate.
+   */
+  getRecordSince(puuid, since) {
+    const matches = this.#state.accounts[puuid]?.matches ?? {};
+    let wins = 0;
+    let losses = 0;
+
+    for (const record of Object.values(matches)) {
+      if ((record.at ?? 0) < since || record.win === null || record.win === undefined) continue;
+      if (record.win) wins += 1;
+      else losses += 1;
+    }
+
+    return { wins, losses };
+  }
+
+  /** The account whose Riot ID this is, or null. Case does not matter. */
+  findByRiotId(riotId) {
+    const wanted = riotId.toLowerCase();
+
+    for (const [puuid, account] of Object.entries(this.#state.accounts)) {
+      if (account.riotId?.toLowerCase() === wanted) return puuid;
+    }
+
+    for (const entry of Object.values(this.#state.watch ?? {})) {
+      if (entry.riotId?.toLowerCase() === wanted) return entry.puuid;
+    }
+
+    return null;
   }
 
   /** When this account last had a match recorded, used to pace polling. */

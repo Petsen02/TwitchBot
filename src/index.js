@@ -4,6 +4,7 @@ import { config, getTwitchConfig, bootstrapChannels, seedPlayers, seedMain } fro
 import { channels, normalizeChannel } from './channels.js';
 import { RiotError, getAccount } from './riot.js';
 import { startTracker } from './tracker.js';
+import { startOverlay } from './overlay.js';
 import { startCutoffSchedule } from './cutoffs.js';
 import { store } from './store.js';
 import { preloadChampions } from './champions.js';
@@ -225,6 +226,7 @@ async function main() {
 
   preloadChampions();
   startTracker();
+  startOverlay();
   startCutoffSchedule();
 }
 

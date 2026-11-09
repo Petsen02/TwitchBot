@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS matches (
   puuid       TEXT NOT NULL,
   match_id    TEXT NOT NULL,
   lp_delta    INTEGER,
+  win         INTEGER,
   recorded_at INTEGER NOT NULL,
   PRIMARY KEY (puuid, match_id)
 );
@@ -98,10 +99,11 @@ export function openDatabase() {
   // IF NOT EXISTS leaves those alone. Adding it here costs nothing on a fresh
   // database and brings an existing one up to date without a migration step
   // anybody has to remember to run.
-  const watchColumns = db.prepare('PRAGMA table_info(watch)').all();
-  if (!watchColumns.some((column) => column.name === 'twitch')) {
-    db.exec('ALTER TABLE watch ADD COLUMN twitch TEXT');
-  }
+  const hasColumn = (table, name) =>
+    db.prepare(`PRAGMA table_info(${table})`).all().some((column) => column.name === name);
+
+  if (!hasColumn('watch', 'twitch')) db.exec('ALTER TABLE watch ADD COLUMN twitch TEXT');
+  if (!hasColumn('matches', 'win')) db.exec('ALTER TABLE matches ADD COLUMN win INTEGER');
 
   const statements = {
     account: db.prepare('INSERT INTO accounts (puuid, riot_id) VALUES (?, ?) '
@@ -111,9 +113,10 @@ export function openDatabase() {
       + 'ON CONFLICT(puuid) DO UPDATE SET tier = excluded.tier, division = excluded.division, '
       + 'league_points = excluded.league_points, absolute = excluded.absolute, '
       + 'taken_at = excluded.taken_at'),
-    match: db.prepare('INSERT INTO matches (puuid, match_id, lp_delta, recorded_at) '
-      + 'VALUES (?, ?, ?, ?) ON CONFLICT(puuid, match_id) DO UPDATE SET '
-      + 'lp_delta = excluded.lp_delta, recorded_at = excluded.recorded_at'),
+    match: db.prepare('INSERT INTO matches (puuid, match_id, lp_delta, win, recorded_at) '
+      + 'VALUES (?, ?, ?, ?, ?) ON CONFLICT(puuid, match_id) DO UPDATE SET '
+      + 'lp_delta = excluded.lp_delta, win = excluded.win, '
+      + 'recorded_at = excluded.recorded_at'),
     baseline: db.prepare('INSERT INTO baselines (puuid, date_key, absolute, taken_at) '
       + 'VALUES (?, ?, ?, ?) ON CONFLICT(puuid, date_key) DO NOTHING'),
     watch: db.prepare('INSERT INTO watch '
@@ -169,6 +172,7 @@ export function openDatabase() {
       for (const row of db.prepare('SELECT * FROM matches').all()) {
         account(row.puuid).matches[row.match_id] = {
           lpDelta: row.lp_delta,
+          win: row.win === null || row.win === undefined ? null : row.win === 1,
           at: row.recorded_at,
         };
       }
@@ -219,7 +223,10 @@ export function openDatabase() {
     },
 
     putMatch(puuid, matchId, record) {
-      statements.match.run(puuid, matchId, num(record.lpDelta), num(record.at) ?? Date.now());
+      // SQLite has no boolean; an unknown result stays null rather than
+      // becoming a loss.
+      const win = record.win === true ? 1 : record.win === false ? 0 : null;
+      statements.match.run(puuid, matchId, num(record.lpDelta), win, num(record.at) ?? Date.now());
     },
 
     putBaseline(puuid, dateKey, entry) {

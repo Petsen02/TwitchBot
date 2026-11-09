@@ -47,6 +47,33 @@ Der er to lister over hvem der bliver målt, og de er med vilje adskilt:
 Selve LP-databasen har altid været global: alt er nøglet på `puuid`, ikke på
 kanal. Er en spiller først målt ét sted, er tallene rigtige i alle kanaler.
 
+## OBS-overlay
+
+Sæt `OVERLAY_PORT` i `.env` til en port der er tildelt serveren i panelets
+Network-fane, og botten serverer en side med dagens stilling:
+
+```
+2/1
+```
+
+Vundne i grønt, tabte i rødt, gennemsigtig baggrund. Læg den i OBS som en
+Browser Source med adressen:
+
+```
+http://DIN-IP:PORT/DIN-STI?player=RASMUS%23WINTR
+```
+
+`%23` er `#`. Sitet opdaterer sig selv hvert femte sekund og læser kun fra
+bottens egen database — der går aldrig et kald til Riot, uanset hvor længe det
+kører. Stillingen går i 0/0 ved lokal midnat, samme døgnskifte som `!session`.
+
+`OVERLAY_PATH` fungerer som password. Tallene er ikke hemmelige, men en sti
+ingen kan gætte holder fremmede ude; alt andet end den rigtige sti svarer 404.
+Uden `OVERLAY_PORT` lytter botten ikke på noget.
+
+Kampe hvor resultatet ikke kunne hentes tæller hverken som sejr eller tab, så
+tallene kan i værste fald være for lave — aldrig for høje.
+
 ### Hvor dataene ligger
 
 Botten vælger selv lager ved opstart og skriver hvad den valgte i loggen:

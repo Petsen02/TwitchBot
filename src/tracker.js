@@ -1,7 +1,7 @@
 import { config } from './config.js';
 import { store } from './store.js';
 import { channels } from './channels.js';
-import { getLeagueEntries, getMatchIds, pickQueue, SOLO_QUEUE } from './riot.js';
+import { getLeagueEntries, getMatch, getMatchIds, pickQueue, SOLO_QUEUE } from './riot.js';
 import { toAbsolute } from './ladder.js';
 import { localDateKey } from './time.js';
 import { writePlayerReport } from './report.js';
@@ -90,14 +90,30 @@ async function pollAccount(account) {
     const measurable = previous !== null && now - previous.at <= snapshotMaxAgeMs();
     const delta = measurable ? absolute - previous.absolute : null;
 
-    fresh.forEach((matchId, index) => {
+    for (const [index, matchId] of fresh.entries()) {
       const isNewest = index === fresh.length - 1;
+
+      // One request per new match buys the result. It is worth it: a finished
+      // game never changes, so this is asked once and answered from our own
+      // store for ever after -- an overlay refreshing every few seconds
+      // cannot go to Riot for it.
+      let win = null;
+      try {
+        const match = await getMatch(platform, matchId);
+        win = match.info.participants.find((p) => p.puuid === puuid)?.win ?? null;
+      } catch (error) {
+        console.error(`[tracker] ${riotId} ${matchId}: ${error.message}`);
+      }
 
       // With one new match the whole change belongs to it. With several we
       // cannot split the change honestly, so only the newest carries a figure
       // and the rest are recorded without one rather than with a guess.
-      store.recordMatch(puuid, riotId, matchId, { lpDelta: isNewest ? delta : null, at: now });
-    });
+      store.recordMatch(puuid, riotId, matchId, {
+        lpDelta: isNewest ? delta : null,
+        at: now,
+        win,
+      });
+    }
   }
 
   store.setSnapshot(puuid, riotId, {
