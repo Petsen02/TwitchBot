@@ -4,6 +4,7 @@ import { channels } from './channels.js';
 import { getLeagueEntries, getMatchIds, pickQueue, SOLO_QUEUE } from './riot.js';
 import { toAbsolute } from './ladder.js';
 import { localDateKey } from './time.js';
+import { writePlayerReport } from './report.js';
 
 /**
  * Background LP measurement.
@@ -149,6 +150,7 @@ async function pollDue() {
   if (due.length > 0) {
     store.prune();
     store.save();
+    writePlayerReport();
   }
 
   return { polled: due.length, total: accounts.length };
@@ -162,6 +164,10 @@ export function startTracker() {
   const tick = () => {
     pollDue().catch((error) => console.error('[tracker] poll fejlede:', error.message));
   };
+
+  // Write the roll once up front, so the file is there to read even on a bot
+  // that has just started and has nothing due yet.
+  writePlayerReport();
 
   tick();
 

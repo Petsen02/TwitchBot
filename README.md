@@ -66,6 +66,25 @@ poll-runde, så prisen vokser med mængden af historik, hvilket er grunden til
 at den blev begænset til 14 dage. SQLite skriver kun de rækker der ændrede
 sig, så den grænse falder bort.
 
+Watch-listen kan læses som almindelig tekst i `data/spillere.txt`, som botten
+skriver om ved hver poll-runde. Den findes kun for at kunne åbnes i en
+filhåndtering — `tracker.db` er binær:
+
+```
+Spillere tilføjet via !session — 3 i alt, 1 med målinger
+Opdateret 09/11/26 kl 21:34
+
+Spiller        Rang     Region  Tilføjet           Seneste måling
+-----------------------------------------------------------------
+allan666#last  ukendt   euw1    09/11/26 kl 21:24  —
+Mistick#EUW    C1204LP  euw1    09/11/26 kl 18:34  —
+RASMUS#WINTR   E2 94LP  euw1    08/11/26 kl 19:34  09/11/26 kl 19:34
+```
+
+Nyeste først. `ukendt` betyder at trackeren endnu ikke har aflæst spillerens
+rang, og en tankestreg at ingen af deres kampe er målt endnu. Filen er en
+visning, ikke data — sletter du den, skrives den igen ved næste poll-runde.
+
 ### Hvor mange kan der være på listen
 
 Loftet er Riot-nøglens rate limit, ikke diskplads. Hver fulgt konto koster 2
