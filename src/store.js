@@ -329,6 +329,44 @@ export class Store {
   }
 
   /**
+   * Gives a ladder change to the most recent match that went unmeasured.
+   *
+   * Riot's ladder lags a little behind the game ending, so a poll that
+   * catches a match the moment it finishes often reads a position that has
+   * not moved yet. The match is recorded without a figure, and the movement
+   * turns up on a later poll with no new game to explain it -- this is where
+   * the two are put back together.
+   *
+   * Only a recent match is eligible. An older one is past the point where a
+   * ladder change can safely be assumed to belong to it rather than to
+   * something else, such as a decay.
+   *
+   * @returns true if a match was given the figure.
+   */
+  attributePending(puuid, delta, { now = Date.now(), maxAgeMs }) {
+    const matches = this.#state.accounts[puuid]?.matches;
+    if (!matches || delta === 0) return false;
+
+    let newestId = null;
+    let newestAt = 0;
+
+    for (const [matchId, record] of Object.entries(matches)) {
+      if (record.lpDelta !== null && record.lpDelta !== undefined) continue;
+      if (now - (record.at ?? 0) > maxAgeMs) continue;
+      if ((record.at ?? 0) <= newestAt) continue;
+
+      newestId = matchId;
+      newestAt = record.at ?? 0;
+    }
+
+    if (!newestId) return false;
+
+    matches[newestId].lpDelta = delta;
+    this.#db?.putMatch(puuid, newestId, matches[newestId]);
+    return true;
+  }
+
+  /**
    * Wins and losses recorded for this account since a point in time.
    *
    * Matches whose result we never learned are left out of both counts rather

@@ -86,9 +86,16 @@ async function pollAccount(account) {
   // matches the order the games were actually played.
   const fresh = matchIds.filter((id) => !store.hasMatch(puuid, id)).reverse();
 
+  const measurable = previous !== null && now - previous.at <= snapshotMaxAgeMs();
+  const moved = measurable ? absolute - previous.absolute : null;
+
   if (fresh.length > 0) {
-    const measurable = previous !== null && now - previous.at <= snapshotMaxAgeMs();
-    const delta = measurable ? absolute - previous.absolute : null;
+    // A ranked game always moves the ladder, so a difference of zero means
+    // Riot had not updated it yet when we looked -- not that the game was
+    // worth nothing. Recording the zero would leave "+0 LP" standing for
+    // good, so the match is left unmeasured and picked up below once the
+    // movement appears.
+    const delta = moved === 0 ? null : moved;
 
     for (const [index, matchId] of fresh.entries()) {
       const isNewest = index === fresh.length - 1;
@@ -114,6 +121,10 @@ async function pollAccount(account) {
         win,
       });
     }
+  } else if (moved) {
+    // The ladder moved with no new game to explain it. That is the lag
+    // catching up: the change belongs to the last game we saw too early.
+    store.attributePending(puuid, moved, { now, maxAgeMs: snapshotMaxAgeMs() });
   }
 
   store.setSnapshot(puuid, riotId, {
