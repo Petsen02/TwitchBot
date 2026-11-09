@@ -117,6 +117,13 @@ export async function commandGains({ channel, argument }) {
   const { platform } = channels.get(channel);
   const account = await getAccount(platform, target);
 
+  // Asking is what puts a player on the bot's watch list, so LP starts being
+  // measured without a mod having to add them first. It cannot fill in games
+  // already played — Riot exposes no LP history — but from the next game on,
+  // this player is measured in every channel, not just this one.
+  const watched = store.watch(platform, account.puuid, `${account.gameName}#${account.tagLine}`);
+  if (watched !== 'current') store.save();
+
   const since = startOfDay(config.timezone);
   const matchIds = (await getMatchIds(platform, account.puuid, {
     startTime: Math.floor(since / 1000),
@@ -161,7 +168,17 @@ export async function commandGains({ channel, argument }) {
     measuredCount = results.length;
   }
 
-  return formatGains({ name: account.gameName, results, lpTotal, measuredCount });
+  // Nothing measured means the player is not on the channel's roster, or the
+  // bot started after the day's first game. Their current LP is still worth
+  // showing, and the call is cached, so it is made only when there is no net
+  // figure to report.
+  let entry = null;
+  if (measuredCount === 0) {
+    const entries = await getLeagueEntries(platform, account.puuid).catch(() => []);
+    entry = pickQueue(entries, SOLO_QUEUE);
+  }
+
+  return formatGains({ name: account.gameName, results, lpTotal, measuredCount, entry });
 }
 
 /** Pulls the fields the stat line needs out of a match-v5 payload. */

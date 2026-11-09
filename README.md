@@ -21,11 +21,58 @@ flere streamere uden at de ser hinandens spillere.
 |---|---|
 | `!rank [Navn#TAG]` | `RASMUS EMERALD IV: 2LP` — Master og opefter får også deres placering på ladderen, `(Rank#167)` |
 | `!ranks` | Kanalens liste, nummereret, højeste først |
-| `!gains` / `!session` `[Navn#TAG]` | `RASMUS: 3W 2L (+24 LP) 🟩🟩🟥🟩🟥` for i dag |
+| `!gains` / `!session` `[Navn#TAG]` | `RASMUS: 3W 2L - (+24 LP) 🟩🟩🟥🟩🟥` for i dag. Dagens netto-LP når kampene er målt, ellers spillerens nuværende LP uden fortegn |
 | `!nextrank [Navn#TAG]` | `Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV` |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
 | `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
+
+### LP-måling og watch-listen
+
+Riot har ingen LP-historik — hverken i deres API eller nogen andre steder. Sider
+som op.gg har den kun fordi de har målt selv i årevis. Botten gør det samme:
+`src/tracker.js` aflæser hver fulgt spillers ladder-position og tilskriver
+ændringen den ranked-kamp der skabte den.
+
+Der er to lister over hvem der bliver målt, og de er med vilje adskilt:
+
+- **Kanalens roster** (`data/channels.json`) er streamerens egen, kurateret af
+  mods med `!oldaddplayer`. Den udløber aldrig og er det `!ranks` viser.
+- **Bottens watch-liste** (`data/tracker.json`) er global og vores egen. Den
+  får en spiller på sig automatisk, første gang nogen kører `!session Navn#TAG`
+  på dem, og den dukker aldrig op i streamerens liste. Posten er permanent, og
+  der er ingen vej af listen igen: er en spiller først set, bliver han målt
+  hver dag fra nu af, uden at nogen skal huske at spørge først.
+
+Selve LP-databasen har altid været global: alt er nøglet på `puuid`, ikke på
+kanal. Er en spiller først målt ét sted, er tallene rigtige i alle kanaler.
+
+### Hvor mange kan der være på listen
+
+Loftet er Riot-nøglens rate limit, ikke diskplads. Hver fulgt konto koster 2
+requests per poll — ét ladder-opslag og én matchliste:
+
+| | Poll-interval | Per konto i timen |
+|---|---|---|
+| Spiller lige nu (< 45 min siden) | 60 s | 120 requests |
+| Inaktiv | 600 s | 12 requests |
+
+En personlig nøgle giver 100 requests per 2 minutter = 3.000 i timen. Det
+rækker til omkring 250 inaktive konti hvis man bruger hele budgettet på det,
+så **regn med 100–150** når der også skal være plads til kommandoer og til de
+spillere der rent faktisk er i gang. En godkendt production-nøgle fra Riot
+flytter loftet til titusindvis.
+
+Skru på `IDLE_POLL_SECONDS` før noget andet: fordoble det, og der er plads til
+dobbelt så mange konti, mod at en afsluttet kamp først tæller et par minutter
+senere. Den næste grænse er `data/tracker.json` selv, som skrives helt om ved
+hver poll-runde — den begynder at gøre ondt et sted i tusinderne, og der er en
+rigtig database svaret.
+
+Målingen kan ikke gå baglæns. En spiller der lige er kommet på listen, får
+først et LP-tal fra sin **næste** kamp; dagens allerede spillede kampe tæller i
+W/L og firkanterne, men ikke i LP'en. Først dagen efter — hvor botten når at
+sætte et nulpunkt før første kamp — dækker `(+24 LP)` hele dagen.
 
 ## Admin-kommandoer
 

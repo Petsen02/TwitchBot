@@ -19,6 +19,10 @@ const DATA_DIR = join(projectRoot, 'data');
 const DATA_FILE = join(DATA_DIR, 'tracker.json');
 const RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 
+// A refresh is only persisted once an hour. Without this every !session would
+// rewrite the file just to move a timestamp a few seconds.
+const WATCH_REFRESH_MS = 60 * 60 * 1000;
+
 function emptyState() {
   return { version: 1, accounts: {} };
 }
@@ -146,6 +150,46 @@ export class Store {
     return gains.reduce((sum, value) => sum + value, 0) / gains.length;
   }
 
+  /**
+   * The bot's own watch list, independent of any channel's roster.
+   *
+   * A channel roster says who a streamer cares about; this says who we are
+   * measuring. They are deliberately separate: asking about a player in chat
+   * should start measuring them, but it should not quietly appear in the
+   * streamer's !players list, which mods curate themselves.
+   *
+   * Entries are permanent and there is no way off the list. Once a player has
+   * been asked about, they keep being measured, so their LP is right every
+   * following day rather than only after somebody remembered to ask first.
+   * The cost is Riot requests, and this list is what has to stay within the
+   * key's budget — see README.
+   *
+   * @returns 'added' | 'refreshed' | 'current'
+   */
+  watch(platform, puuid, riotId, at = Date.now()) {
+    this.#state.watch ??= {};
+
+    const key = `${platform}:${puuid}`;
+    const existing = this.#state.watch[key];
+
+    if (!existing) {
+      this.#state.watch[key] = { platform, puuid, riotId, addedAt: at, lastAskedAt: at };
+      return 'added';
+    }
+
+    existing.riotId = riotId;
+
+    if (at - (existing.lastAskedAt ?? 0) < WATCH_REFRESH_MS) return 'current';
+
+    existing.lastAskedAt = at;
+    return 'refreshed';
+  }
+
+  /** Every watch-list account, shaped like a roster entry. */
+  watchedAccounts() {
+    return Object.values(this.#state.watch ?? {});
+  }
+
   /** When this account last had a match recorded, used to pace polling. */
   getLastMatchAt(puuid) {
     const matches = this.#state.accounts[puuid]?.matches;
@@ -158,11 +202,11 @@ export class Store {
     return latest;
   }
 
-  /** Drops old matches and baselines so the file cannot grow without bound. */
+  /** Drops old matches, baselines and watch entries so the file stays small. */
   prune(now = Date.now()) {
     const cutoff = now - RETENTION_MS;
 
-    for (const account of Object.values(this.#state.accounts)) {
+    for (const [puuid, account] of Object.entries(this.#state.accounts)) {
       for (const [matchId, record] of Object.entries(account.matches ?? {})) {
         if ((record.at ?? 0) < cutoff) delete account.matches[matchId];
       }
@@ -171,6 +215,17 @@ export class Store {
       for (const dateKey of Object.keys(account.baselines ?? {})) {
         if (dateKey < keepFrom) delete account.baselines[dateKey];
       }
+
+      // Catches an account that is on no list at all any more — dropped from a
+      // roster, never asked about in chat — and is left holding one stale
+      // snapshot once its games age out. A watched account is polled every few
+      // minutes, so its snapshot never gets this old.
+      const empty =
+        Object.keys(account.matches ?? {}).length === 0
+        && Object.keys(account.baselines ?? {}).length === 0
+        && (account.snapshot?.at ?? 0) < cutoff;
+
+      if (empty) delete this.#state.accounts[puuid];
     }
   }
 }

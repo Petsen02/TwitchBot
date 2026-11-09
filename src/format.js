@@ -37,25 +37,36 @@ export function formatRanksMessage(players) {
 }
 
 /**
- * "3W 2L (+24 LP) 🟩🟩🟥🟩🟥"
+ * "RASMUS: 3W 2L - (+24 LP) 🟩🟩🟥🟩🟥"
  *
- * Squares run oldest to newest. The LP total is omitted entirely when none of
- * today's games were measured, rather than claiming a misleading 0.
+ * Squares run oldest to newest. The LP field is the point of the line, so it
+ * is never left out: a signed figure is the day's net gain as measured by the
+ * tracker, and a bare figure is the player's current LP, shown when no game
+ * today was measured. The sign is what tells the two apart, so an unmeasured
+ * day never reads as a misleading +0.
+ *
+ * The current-LP fallback deliberately carries no tier name. In emote style a
+ * tier has to stand alone between spaces for 7TV to swap in the image, and
+ * "(EMERALD" would never match.
  */
-export function formatGains({ name, results, lpTotal, measuredCount }) {
+export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
   if (results.length === 0) return `${name} har ikke spillet ranked i dag`;
 
   const wins = results.filter(Boolean).length;
   const losses = results.length - wins;
   const squares = results.map((win) => (win ? '🟩' : '🟥')).join('');
 
-  const parts = [`${name}:`, `${wins}W ${losses}L`];
+  // The net total covers only measured games. Games played before tracking
+  // began are counted in the W/L and the squares, but not in the LP.
+  const lp = measuredCount > 0
+    ? formatLpDelta(lpTotal)
+    : (entry ? `${entry.leaguePoints ?? 0} LP` : null);
 
-  // The total covers only measured games. Games played before tracking began
-  // are counted in the W/L and the squares, but not in the LP.
-  if (measuredCount > 0) parts.push(`(${formatLpDelta(lpTotal)})`);
+  const head = lp
+    ? `${name}: ${wins}W ${losses}L - (${lp})`
+    : `${name}: ${wins}W ${losses}L`;
 
-  return `${parts.join(' ')} ${squares}`;
+  return `${head} ${squares}`;
 }
 
 /**

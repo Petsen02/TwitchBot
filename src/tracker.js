@@ -25,6 +25,19 @@ import { localDateKey } from './time.js';
 // against — long enough to cover a restart, short enough to stay cheap.
 const COLD_START_LOOKBACK_MS = 6 * 60 * 60 * 1000;
 
+/**
+ * How old a snapshot may be and still be subtracted from.
+ *
+ * A snapshot is rewritten on every poll, so a healthy one is never older than
+ * the idle interval. Anything much older means we stopped watching this
+ * account for a while — it fell off the watch list, or the bot was down — and
+ * the difference then spans days rather than one game. Attributing that to the
+ * newest match would invent a figure, so the gap is recorded without one.
+ */
+function snapshotMaxAgeMs() {
+  return 3 * config.idlePollMs;
+}
+
 const lastPolledAt = new Map();
 
 function isActive(puuid, now) {
@@ -73,7 +86,8 @@ async function pollAccount(account) {
   const fresh = matchIds.filter((id) => !store.hasMatch(puuid, id)).reverse();
 
   if (fresh.length > 0) {
-    const delta = previous ? absolute - previous.absolute : null;
+    const measurable = previous !== null && now - previous.at <= snapshotMaxAgeMs();
+    const delta = measurable ? absolute - previous.absolute : null;
 
     fresh.forEach((matchId, index) => {
       const isNewest = index === fresh.length - 1;
@@ -94,9 +108,32 @@ async function pollAccount(account) {
   });
 }
 
+/**
+ * Everything the tracker should poll: the channels' curated rosters plus the
+ * bot's own watch list, deduplicated.
+ *
+ * Roster entries win on a collision. They carry the channel list and never
+ * expire, so a player a streamer added is not downgraded to a temporary watch
+ * entry just because somebody also asked about them in chat.
+ */
+function pollTargets() {
+  const seen = new Map();
+
+  for (const account of channels.trackedAccounts()) {
+    seen.set(`${account.platform}:${account.puuid}`, account);
+  }
+
+  for (const entry of store.watchedAccounts()) {
+    const key = `${entry.platform}:${entry.puuid}`;
+    if (!seen.has(key)) seen.set(key, entry);
+  }
+
+  return [...seen.values()];
+}
+
 async function pollDue() {
   const now = Date.now();
-  const accounts = channels.trackedAccounts();
+  const accounts = pollTargets();
   const due = accounts.filter((account) => isDue(account, now));
 
   for (const account of due) {
