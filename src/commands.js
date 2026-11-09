@@ -130,7 +130,11 @@ export async function commandGains({ channel, argument }) {
     count: 20,
   })).reverse(); // Oldest first, so result squares read in playing order.
 
-  if (matchIds.length === 0) return `${account.gameName} har ikke spillet ranked i dag`;
+  // Routed through the formatter so the no-games line cannot drift away from
+  // the one the formatter produces for the same situation.
+  if (matchIds.length === 0) {
+    return formatGains({ name: account.gameName, results: [], lpTotal: 0, measuredCount: 0 });
+  }
 
   const stats = await Promise.all(matchIds.map((id) => getMatchStats(platform, id, account.puuid)));
 

@@ -49,13 +49,16 @@ export function formatRanksMessage(players) {
  * tier has to stand alone between spaces for 7TV to swap in the image, and
  * "(EMERALD" would never match.
  *
+ * A day with no games at all answers in the same shape, so the two cases do
+ * not read as different kinds of answer.
+ *
  * An unmeasured day also says so. Without that the bare figure reads like a
  * day's gain to anyone who has not noticed that the sign is what separates
  * them, and the note doubles as the answer to "why is there no LP for me yet".
  * It disappears on its own once the first game has been measured.
  */
 export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
-  if (results.length === 0) return `${name} har ikke spillet ranked i dag`;
+  if (results.length === 0) return `${name}: ingen data${SEP}måler fra næste kamp`;
 
   const wins = results.filter(Boolean).length;
   const losses = results.length - wins;
