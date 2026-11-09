@@ -90,15 +90,27 @@ const REGION_LABELS = {
   oc1: 'OCE',
 };
 
+/** The names this entry is listed under, if any. */
+function overlayNames(entry) {
+  if (!entry) return [];
+
+  return [(entry.twitch ?? '').toLowerCase(), (entry.riotId ?? '').toLowerCase()]
+    .filter((name) => name && config.overlayPlayers.has(name));
+}
+
 /** Whether this watch-list entry is one of the named overlay players. */
 export function overlayAllows(entry) {
-  if (!entry) return false;
+  return overlayNames(entry).length > 0;
+}
 
-  const named = config.overlayPlayers;
-  if (named.size === 0) return false;
+/** The key chosen for this entry in OVERLAY_PLAYERS, or null for a random one. */
+export function overlayChosenKey(entry) {
+  for (const name of overlayNames(entry)) {
+    const key = config.overlayPlayers.get(name);
+    if (key) return key;
+  }
 
-  return named.has((entry.twitch ?? '').toLowerCase())
-    || named.has((entry.riotId ?? '').toLowerCase());
+  return null;
 }
 
 export function regionLabel(platform) {
@@ -170,6 +182,39 @@ function seconds(key, fallback) {
   return value * 1000;
 }
 
+/**
+ * "wendelbolol, someone:their-own-key" into a map of name to chosen key.
+ *
+ * A key the operator picked is a path on a public server, so it is held to
+ * what reads safely in a URL. Anything else is refused outright rather than
+ * quietly cleaned up into an address nobody expected.
+ */
+function parseOverlayPlayers(raw) {
+  const players = new Map();
+
+  for (const part of (raw || '').split(',')) {
+    const entry = part.trim();
+    if (!entry) continue;
+
+    const colon = entry.lastIndexOf(':');
+    const name = (colon === -1 ? entry : entry.slice(0, colon)).trim().toLowerCase();
+    const key = colon === -1 ? null : entry.slice(colon + 1).trim();
+
+    if (!name) continue;
+
+    if (key !== null && !/^[A-Za-z0-9_-]{4,64}$/.test(key)) {
+      throw new Error(
+        `OVERLAY_PLAYERS: "${key}" duer ikke som nøgle — brug 4-64 tegn, `
+        + 'kun bogstaver, tal, bindestreg og underscore',
+      );
+    }
+
+    players.set(name, key);
+  }
+
+  return players;
+}
+
 function count(key, fallback) {
   const value = Number(process.env[key] ?? fallback);
   if (!Number.isFinite(value) || value <= 0) throw new Error(`${key} skal være et positivt tal`);
@@ -223,12 +268,11 @@ export const config = {
   //
   // An entry matches either a Twitch name or a Riot ID, so a streamer can be
   // named before the bot has worked out which account is theirs.
-  overlayPlayers: new Set(
-    (process.env.OVERLAY_PLAYERS || '')
-      .split(',')
-      .map((name) => name.trim().toLowerCase())
-      .filter(Boolean),
-  ),
+  //
+  // "name:key" sets the address yourself, so the link is known before the bot
+  // has ever run and can be handed over without reading it back off the
+  // server. Plain "name" gets a random one instead.
+  overlayPlayers: parseOverlayPlayers(process.env.OVERLAY_PLAYERS),
 };
 
 /** Comma-separated channel names, normalised the way Twitch reports them. */

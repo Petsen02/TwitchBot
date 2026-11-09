@@ -64,8 +64,15 @@ gælder, adskilt af komma — resten af watch-listen er folk en seer tilfældigv
 har slået op, og et link til hver af dem er et link ingen har bedt om:
 
 ```bash
-OVERLAY_PLAYERS=wendelbolol,Wendel#EUW
+OVERLAY_PLAYERS=wendelbolol:wendel,Wendel#EUW
 ```
+
+Skriver du `navn:nøgle`, bestemmer du selv adressen, og så er linket kendt før
+botten overhovedet har kørt — `http://din-ip:25581/wendel`. Uden `:nøgle` laves
+en tilfældig, som du må slå op bagefter. Nøglen skal være 4-64 tegn af
+bogstaver, tal, bindestreg og underscore; alt andet afvises ved opstart frem
+for at ende som en adresse ingen havde regnet med. Linkene printes også i
+loggen når botten starter.
 
 Hvert navn matcher enten et **Twitch-navn** eller et **Riot-ID**. Riot-ID'et er
 den sikre vej, for så afhænger det ikke af at botten har gennemskuet hvilken

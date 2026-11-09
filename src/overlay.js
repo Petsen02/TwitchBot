@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { config, overlayAllows } from './config.js';
+import { config, overlayAllows, overlayChosenKey } from './config.js';
 import { store } from './store.js';
 import { startOfDay } from './time.js';
 
@@ -118,12 +118,25 @@ export function startOverlay() {
   server.on('error', (error) => console.error('[overlay] fejl:', error.message));
 
   server.listen(config.overlayPort, '0.0.0.0', () => {
-    const named = [...config.overlayPlayers].join(', ') || 'ingen — sæt OVERLAY_PLAYERS';
-    store.ensureOverlayKeys(overlayAllows);
+    store.ensureOverlayKeys(overlayAllows, overlayChosenKey);
 
     console.log(`[overlay] lytter på port ${config.overlayPort}`);
-    console.log(`[overlay] overlay til: ${named}`);
-    console.log('[overlay] links står i data/spillere.txt');
+
+    const links = store
+      .watchedAccounts()
+      .filter((entry) => overlayAllows(entry) && entry.overlayKey);
+
+    if (links.length === 0) {
+      const named = [...config.overlayPlayers.keys()].join(', ');
+      console.log(`[overlay] ingen konti at vise endnu for: ${named || '(tom liste)'}`);
+      return;
+    }
+
+    // Printed in full, so the address can be copied straight out of the
+    // console without going looking for the file.
+    for (const entry of links) {
+      console.log(`[overlay] ${entry.riotId}: ${config.overlayBaseUrl}/${entry.overlayKey}`);
+    }
   });
 
   server.unref?.();

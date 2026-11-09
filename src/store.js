@@ -297,19 +297,24 @@ export class Store {
    *
    * @returns how many were given one.
    */
-  ensureOverlayKeys(allow) {
-    let added = 0;
+  ensureOverlayKeys(allow, chosenKey = () => null) {
+    let changed = 0;
 
     for (const entry of Object.values(this.#state.watch ?? {})) {
-      if (entry.overlayKey || !allow(entry)) continue;
+      if (!allow(entry)) continue;
 
-      entry.overlayKey = newOverlayKey();
+      // A key named in the settings wins, every start. That is what lets the
+      // address be decided up front and changed later by editing one line.
+      const wanted = chosenKey(entry) ?? entry.overlayKey ?? newOverlayKey();
+      if (wanted === entry.overlayKey) continue;
+
+      entry.overlayKey = wanted;
       this.#db?.putWatch(entry);
-      added += 1;
+      changed += 1;
     }
 
-    if (added > 0) this.save();
-    return added;
+    if (changed > 0) this.save();
+    return changed;
   }
 
   /** The account a given overlay key belongs to, or null. */
