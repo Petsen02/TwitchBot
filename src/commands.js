@@ -17,6 +17,7 @@ import { lookupPros } from './lolpros.js';
 import { championName } from './champions.js';
 import { startOfDay, localDateKey } from './time.js';
 import { getSnapshot } from './cutoffs.js';
+import { writePlayerReport } from './report.js';
 import {
   formatPlayerRank,
   formatNextRank,
@@ -42,6 +43,24 @@ const MAX_MESSAGE = 480;
 
 export function truncate(message) {
   return message.length <= MAX_MESSAGE ? message : `${message.slice(0, MAX_MESSAGE - 1)}…`;
+}
+
+/**
+ * Puts a looked-up player on the watch list and records who asked for them.
+ *
+ * Only ever for a Riot ID somebody typed. Without an argument these commands
+ * answer for the channel's main, and tying a viewer to the streamer's account
+ * because they ran a bare !rank would be a worse link than none at all.
+ *
+ * The file is rewritten here rather than left to the next poll round, because
+ * a link that only shows up ten minutes later looks like it did not work.
+ */
+function noteLookup(platform, puuid, riotId, argument, viewer) {
+  if (!argument) return;
+  if (store.watch(platform, puuid, riotId, Date.now(), viewer ?? null) === 'current') return;
+
+  store.save();
+  writePlayerReport();
 }
 
 /** An argument the user typed wins; otherwise fall back to the channel's main. */
@@ -73,12 +92,16 @@ async function describePlayer(platform, riotId) {
   };
 }
 
-export async function commandRank({ channel, argument }) {
+export async function commandRank({ channel, argument, viewer }) {
   const target = resolveTarget(channel, argument);
   if (!target) return 'Ingen main sat — brug !rank Navn#TAG eller !oldaddmain Navn#TAG';
 
   const { platform } = channels.get(channel);
-  return formatPlayerRank(await describePlayer(platform, target));
+  const player = await describePlayer(platform, target);
+
+  noteLookup(platform, player.puuid, player.riotId, argument, viewer);
+
+  return formatPlayerRank(player);
 }
 
 export async function commandRanks({ channel }) {
@@ -121,14 +144,13 @@ export async function commandGains({ channel, argument, viewer }) {
   // measured without a mod having to add them first. It cannot fill in games
   // already played — Riot exposes no LP history — but from the next game on,
   // this player is measured in every channel, not just this one.
-  const watched = store.watch(
+  noteLookup(
     platform,
     account.puuid,
     `${account.gameName}#${account.tagLine}`,
-    Date.now(),
-    viewer ?? null,
+    argument,
+    viewer,
   );
-  if (watched !== 'current') store.save();
 
   const since = startOfDay(config.timezone);
   const matchIds = (await getMatchIds(platform, account.puuid, {
@@ -216,12 +238,15 @@ function extractStats(match, puuid) {
   };
 }
 
-export async function commandLastGame({ channel, argument }) {
+export async function commandLastGame({ channel, argument, viewer }) {
   const target = resolveTarget(channel, argument);
   if (!target) return 'Ingen main sat — brug !lastgame Navn#TAG';
 
   const { platform } = channels.get(channel);
   const account = await getAccount(platform, target);
+
+  noteLookup(platform, account.puuid, `${account.gameName}#${account.tagLine}`, argument, viewer);
+
   const [matchId] = await getMatchIds(platform, account.puuid, { count: 1 });
 
   if (!matchId) return `${account.gameName} har ingen nylige ranked kampe`;
@@ -236,12 +261,15 @@ export async function commandLastGame({ channel, argument }) {
   });
 }
 
-export async function commandGame({ channel, argument }) {
+export async function commandGame({ channel, argument, viewer }) {
   const target = resolveTarget(channel, argument);
   if (!target) return 'Ingen main sat — brug !lobby Navn#TAG';
 
   const { platform } = channels.get(channel);
   const account = await getAccount(platform, target);
+
+  noteLookup(platform, account.puuid, `${account.gameName}#${account.tagLine}`, argument, viewer);
+
   const game = await getActiveGame(platform, account.puuid);
 
   if (!game) return `${account.gameName} er ikke i en kamp lige nu`;
@@ -416,12 +444,14 @@ const ASSUMED_LP_PER_WIN = 20;
  * At Master and Grandmaster there is no fixed threshold at all: promotion is
  * decided by a moving cutoff, so the current one is used instead.
  */
-export async function commandNextRank({ channel, argument }) {
+export async function commandNextRank({ channel, argument, viewer }) {
   const target = resolveTarget(channel, argument);
   if (!target) return 'Ingen main sat — brug !nextrank Navn#TAG';
 
   const { platform } = channels.get(channel);
   const player = await describePlayer(platform, target);
+
+  noteLookup(platform, player.puuid, player.riotId, argument, viewer);
 
   if (!player.entry) return `${player.name} er unranked — ingen rank at regne fra`;
 

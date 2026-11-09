@@ -66,8 +66,10 @@ poll-runde, så prisen vokser med mængden af historik, hvilket er grunden til
 at den blev begænset til 14 dage. SQLite skriver kun de rækker der ændrede
 sig, så den grænse falder bort.
 
-Hver gang nogen skriver `!session Navn#TAG`, noteres både Riot-ID'et og
-Twitch-navnet på den der spurgte. Parrene kan læses som almindelig tekst i
+Hver gang nogen slår et Riot-ID op — med `!rank`, `!session`, `!lastgame`,
+`!lobby` eller `!nextrank` — noteres både ID'et og Twitch-navnet på den der
+spurgte. Kun når ID'et er skrevet i kommandoen: uden argument svarer de for
+kanalens main, og det ville binde en tilfældig seer til streamerens konto. Parrene kan læses som almindelig tekst i
 `data/spillere.txt`, som skrives om ved hver poll-runde — `tracker.db` er
 binær og kan ikke åbnes i en filhåndtering:
 
