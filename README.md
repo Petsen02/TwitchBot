@@ -21,7 +21,7 @@ flere streamere uden at de ser hinandens spillere.
 |---|---|
 | `!rank [Navn#TAG]` | `RASMUS EMERALD IV: 2LP` — Master og opefter får også deres placering på ladderen, `(Rank#167)` |
 | `!ranks` | Kanalens liste, nummereret, højeste først |
-| `!gains` / `!session` `[Navn#TAG]` | `RASMUS: 3W 2L - (+24 LP) 🟩🟩🟥🟩🟥` for i dag. Er kampene ikke målt, udelades LP-feltet: `RASMUS: 3W 2L 🟩🟩🟥🟩🟥 │ måler fra næste kamp`. Ingen kampe i dag: `RASMUS: ingen data │ måler fra næste kamp` |
+| `!gains` / `!session` `[Navn#TAG]` | `RASMUS: 3W 2L - (+24 LP) 🟩🟩🟥🟩🟥` for i dag. Er intet målt endnu: `RASMUS: ingen data │ måler fra næste kamp` |
 | `!nextrank [Navn#TAG]` | `Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV` |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
@@ -90,8 +90,8 @@ rigtig database svaret.
 
 Målingen kan ikke gå baglæns. En spiller der lige er kommet på listen, får
 først et LP-tal fra sin **næste** kamp; dagens allerede spillede kampe tæller i
-W/L og firkanterne, men ikke i LP'en. Indtil da udelades LP-feltet helt frem
-for at vise spillerens nuværende stilling, som læses som en gevinst. Først dagen efter — hvor botten når at
+W/L og firkanterne. Indtil der er målt noget, svarer linjen `ingen data` frem
+for at vise en opgørelse uden LP, som bare rejser spørgsmålet om hvorfor. Først dagen efter — hvor botten når at
 sætte et nulpunkt før første kamp — dækker `(+24 LP)` hele dagen.
 
 ## Admin-kommandoer

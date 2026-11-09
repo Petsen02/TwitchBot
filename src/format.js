@@ -41,25 +41,19 @@ export function formatRanksMessage(players) {
  *
  * Squares run oldest to newest.
  *
- * The parentheses only ever hold a measured figure. Showing the player's
- * current LP there instead, when nothing had been measured, put a number in
- * the slot a gain lives in -- and a reader has to already know that the sign
- * is what separates them. In practice it was read as a gain, so the field is
- * left out entirely rather than filled with something that has to be
- * explained. An unmeasured day says what it is and what happens next.
+ * Nothing is reported until there is a measured figure to report. Showing
+ * the record on its own invited exactly the question the LP field answers,
+ * and filling that field with the player's current standing instead was read
+ * as a gain -- the sign was the only thing separating them, which a reader
+ * has to know in advance. So an unmeasured day says it has nothing, whether
+ * or not games were played, and says when that changes.
  */
 export function formatGains({ name, results, lpTotal, measuredCount }) {
-  if (results.length === 0) return `${name}: ingen data${SEP}måler fra næste kamp`;
+  if (measuredCount === 0) return `${name}: ingen data${SEP}måler fra næste kamp`;
 
   const wins = results.filter(Boolean).length;
   const losses = results.length - wins;
   const squares = results.map((win) => (win ? '🟩' : '🟥')).join('');
-
-  // The net total covers only measured games. Games played before tracking
-  // began are counted in the W/L and the squares, but not in the LP.
-  if (measuredCount === 0) {
-    return `${name}: ${wins}W ${losses}L ${squares}${SEP}måler fra næste kamp`;
-  }
 
   return `${name}: ${wins}W ${losses}L - (${formatLpDelta(lpTotal)}) ${squares}`;
 }
