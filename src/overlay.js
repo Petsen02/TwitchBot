@@ -1,5 +1,6 @@
 import { createServer } from 'node:http';
-import { config, overlayAllows, overlayChosenKey } from './config.js';
+import { channels } from './channels.js';
+import { config, overlayAllows, overlayChannelMatch, overlayChosenKey } from './config.js';
 import { store } from './store.js';
 import { startOfDay } from './time.js';
 
@@ -118,6 +119,23 @@ export function startOverlay() {
   server.on('error', (error) => console.error('[overlay] fejl:', error.message));
 
   server.listen(config.overlayPort, '0.0.0.0', () => {
+    // A channel's main lives on that channel's roster, not on the watch
+    // list, so naming a streamer would otherwise find nothing to attach a key
+    // to. Pulling them across costs no Riot call -- the roster already knows
+    // the account -- and starts measuring them, which the overlay needs
+    // anyway.
+    for (const account of channels.trackedAccounts()) {
+      if (!overlayAllows(account)) continue;
+
+      store.watch(
+        account.platform,
+        account.puuid,
+        account.riotId,
+        Date.now(),
+        overlayChannelMatch(account),
+      );
+    }
+
     store.ensureOverlayKeys(overlayAllows, overlayChosenKey);
 
     console.log(`[overlay] lytter på port ${config.overlayPort}`);

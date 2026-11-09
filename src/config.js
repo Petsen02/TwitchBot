@@ -90,17 +90,44 @@ const REGION_LABELS = {
   oc1: 'OCE',
 };
 
-/** The names this entry is listed under, if any. */
+/**
+ * The names this entry is listed under, if any.
+ *
+ * A channel's own name counts, so naming a streamer gives their channel's
+ * main an overlay without anyone having to look up which Riot account that
+ * is. Roster entries carry their channels; watch entries carry the Twitch
+ * name of whoever asked.
+ */
 function overlayNames(entry) {
   if (!entry) return [];
 
-  return [(entry.twitch ?? '').toLowerCase(), (entry.riotId ?? '').toLowerCase()]
-    .filter((name) => name && config.overlayPlayers.has(name));
+  const candidates = [
+    (entry.twitch ?? '').toLowerCase(),
+    (entry.riotId ?? '').toLowerCase(),
+    ...(entry.channels ?? []).map((name) => name.toLowerCase()),
+  ];
+
+  return candidates.filter((name) => name && config.overlayPlayers.has(name));
 }
 
 /** Whether this watch-list entry is one of the named overlay players. */
 export function overlayAllows(entry) {
   return overlayNames(entry).length > 0;
+}
+
+/**
+ * The channel name this roster account is listed under, if any.
+ *
+ * Used to carry the match across when a roster account is pulled onto the
+ * watch list: the watch entry has no channels of its own, so without this
+ * the account would stop matching the moment it was copied.
+ */
+export function overlayChannelMatch(account) {
+  for (const name of account?.channels ?? []) {
+    if (config.overlayPlayers.has(name.toLowerCase())) return name.toLowerCase();
+  }
+
+  return null;
 }
 
 /** The key chosen for this entry in OVERLAY_PLAYERS, or null for a random one. */

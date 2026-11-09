@@ -74,9 +74,11 @@ bogstaver, tal, bindestreg og underscore; alt andet afvises ved opstart frem
 for at ende som en adresse ingen havde regnet med. Linkene printes også i
 loggen når botten starter.
 
-Hvert navn matcher enten et **Twitch-navn** eller et **Riot-ID**. Riot-ID'et er
-den sikre vej, for så afhænger det ikke af at botten har gennemskuet hvilken
-konto der hører til hvem. Listen tjekkes ved hver forespørgsel, så fjerner du
+Hvert navn matcher et **kanalnavn**, et **Twitch-navn** eller et **Riot-ID**.
+Kanalnavnet er den nemmeste: skriver du `wendelbolol`, får kanalens main et
+overlay, uden at du behøver vide hvilken Riot-konto det er. Er spilleren ikke
+på nogen kanals roster, matcher Twitch-navnet dem der har slået sig selv op,
+og Riot-ID'et virker altid. Listen tjekkes ved hver forespørgsel, så fjerner du
 nogen fra den, lukker deres link med det samme.
 
 **Hver spiller har sit eget link.** Adresserne står i `data/spillere.txt`:
