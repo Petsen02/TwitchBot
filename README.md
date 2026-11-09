@@ -94,9 +94,6 @@ findes til Chrome og Firefox. Uden den ser de `CHALLENGER 2418LP` som ren
 tekst, hvilket stadig læses fint. Der findes ingen måde at sende billeder til
 alle i en Twitch-chat.
 
-Vil du helt undgå ikonerne, sættes `RANK_STYLE=letters` i `.env`. Så skriver
-botten `C2418LP` i stedet.
-
 ## Regioner
 
 Koden du skriver til `!oldregion`, og hvilken server den dækker. Riots egne
