@@ -73,7 +73,7 @@ export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
 
   if (measuredCount > 0) return `${head} ${squares}`;
 
-  return `${head} ${squares}${SEP}LP måles fra næste kamp`;
+  return `${head} ${squares}${SEP}måler fra næste kamp`;
 }
 
 /**
