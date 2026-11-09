@@ -127,12 +127,17 @@ export function startOverlay() {
     for (const account of channels.trackedAccounts()) {
       if (!overlayAllows(account)) continue;
 
+      // Forced: this account is the channel's own main, so the channel name
+      // beats whoever happened to look them up in chat first.
+      const channel = overlayChannelMatch(account);
+
       store.watch(
         account.platform,
         account.puuid,
         account.riotId,
         Date.now(),
-        overlayChannelMatch(account),
+        channel,
+        { force: Boolean(channel) },
       );
     }
 

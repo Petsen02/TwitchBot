@@ -253,7 +253,7 @@ export class Store {
    *
    * @returns 'added' | 'refreshed' | 'current'
    */
-  watch(platform, puuid, riotId, at = Date.now(), twitch = null) {
+  watch(platform, puuid, riotId, at = Date.now(), twitch = null, { force = false } = {}) {
     this.#state.watch ??= {};
 
     const key = `${platform}:${puuid}`;
@@ -270,8 +270,13 @@ export class Store {
 
     // A blank entry -- one from before the link existed -- takes the next
     // asker it sees rather than staying blank for good.
+    //
+    // `force` is for a name that is not a guess at all, such as a channel's
+    // own main: that account is the streamer's by definition, where whoever
+    // happened to look them up first is only likely to be them.
     const claimed = Boolean(twitch)
-      && (!existing.twitch
+      && (force
+        || !existing.twitch
         || (namesMatch(twitch, riotId) && !namesMatch(existing.twitch, riotId)));
 
     if (claimed) existing.twitch = twitch;
