@@ -47,6 +47,25 @@ Der er to lister over hvem der bliver målt, og de er med vilje adskilt:
 Selve LP-databasen har altid været global: alt er nøglet på `puuid`, ikke på
 kanal. Er en spiller først målt ét sted, er tallene rigtige i alle kanaler.
 
+### Hvor dataene ligger
+
+Botten vælger selv lager ved opstart og skriver hvad den valgte i loggen:
+
+| Node | Lager | Historik |
+|---|---|---|
+| 22.5+ | `data/tracker.db` (SQLite) | ubegrænset |
+| Ældre | `data/tracker.json` | 14 dage |
+
+`node:sqlite` er indbygget i Node, så der er ingen pakke at installere og intet
+at kompilere på serveren. Første opstart på en ny nok Node kopierer indholdet
+af `tracker.json` ind i databasen og **lader JSON-filen ligge urørt** — slet
+`tracker.db`, og botten er tilbage hvor den var.
+
+Forskellen er ikke kun kapacitet. JSON-filen skrives helt om ved hver
+poll-runde, så prisen vokser med mængden af historik, hvilket er grunden til
+at den blev begænset til 14 dage. SQLite skriver kun de rækker der ændrede
+sig, så den grænse falder bort.
+
 ### Hvor mange kan der være på listen
 
 Loftet er Riot-nøglens rate limit, ikke diskplads. Hver fulgt konto koster 2

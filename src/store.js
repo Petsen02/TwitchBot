@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { projectRoot } from './config.js';
+import { openDatabase } from './sqlite.js';
 
 /**
  * Durable state for LP tracking.
@@ -10,9 +11,19 @@ import { projectRoot } from './config.js';
  * ranked match appears we attribute the change to that match. Losing this file
  * means losing LP history, so writes are atomic (write temp, then rename).
  *
- * The data stays tiny — one snapshot per player plus a couple of dozen matches
- * per day — so a JSON file beats a database here, and avoids a native
- * dependency that would have to compile on the server.
+ * There are two backings. SQLite is used when the Node running the bot has
+ * `node:sqlite`, and every change is written to it as it happens, one row at
+ * a time. Otherwise the whole state is held in memory and written to a JSON
+ * file, as it always was.
+ *
+ * The JSON file is rewritten in full on every save, so its cost grows with
+ * the history kept -- which is why history was capped at a fortnight. SQLite
+ * removes that ceiling. The switch happens on its own: upgrade Node, restart,
+ * and the first run imports the JSON file and carries on from there. The old
+ * file is left untouched, so going back is just downgrading again.
+ *
+ * Either way the state lives in memory and reads are synchronous, so nothing
+ * else in the bot has to know which backing is in use.
  */
 
 const DATA_DIR = join(projectRoot, 'data');
@@ -29,12 +40,36 @@ function emptyState() {
 
 export class Store {
   #state;
+  #db;
 
-  constructor() {
-    this.#state = this.#load();
+  constructor({ quiet = false } = {}) {
+    this.#db = openDatabase();
+
+    if (!this.#db) {
+      this.#state = this.#readJson();
+      if (!quiet) console.log('[store] node:sqlite findes ikke — bruger JSON');
+      return;
+    }
+
+    // A database with nothing in it on a bot that has been running is the
+    // first start after the upgrade, so the JSON file is carried across. The
+    // file is only read, never removed: it is the way back if SQLite is not
+    // wanted after all.
+    if (this.#db.isEmpty()) {
+      const existing = this.#readJson();
+      const carried = Object.keys(existing.accounts ?? {}).length;
+
+      if (carried > 0) {
+        this.#db.importState(existing);
+        if (!quiet) console.log(`[store] flyttede ${carried} konti fra JSON til SQLite`);
+      }
+    }
+
+    this.#state = this.#db.readState();
+    if (!quiet) console.log(`[store] bruger SQLite (${this.#db.path})`);
   }
 
-  #load() {
+  #readJson() {
     try {
       const parsed = JSON.parse(readFileSync(DATA_FILE, 'utf8'));
       if (parsed && typeof parsed === 'object' && parsed.accounts) return parsed;
@@ -44,7 +79,13 @@ export class Store {
     }
   }
 
+  /**
+   * On SQLite this is a no-op: every change was already written when it was
+   * made. The callers still call it, because they have to on JSON.
+   */
   save() {
+    if (this.#db) return;
+
     mkdirSync(DATA_DIR, { recursive: true });
 
     // Write to a sibling file first so a crash mid-write cannot leave the real
@@ -63,6 +104,7 @@ export class Store {
     if (riotId) account.riotId = riotId;
     account.matches ??= {};
     account.baselines ??= {};
+    this.#db?.putAccount(puuid, account.riotId);
     return account;
   }
 
@@ -72,6 +114,7 @@ export class Store {
 
   setSnapshot(puuid, riotId, snapshot) {
     this.#account(puuid, riotId).snapshot = snapshot;
+    this.#db?.putSnapshot(puuid, snapshot);
   }
 
   /** LP delta recorded for a specific match, or null if we never measured it. */
@@ -84,7 +127,9 @@ export class Store {
   }
 
   recordMatch(puuid, riotId, matchId, { lpDelta, at }) {
-    this.#account(puuid, riotId).matches[matchId] = { lpDelta, at: at ?? Date.now() };
+    const record = { lpDelta, at: at ?? Date.now() };
+    this.#account(puuid, riotId).matches[matchId] = record;
+    this.#db?.putMatch(puuid, matchId, record);
   }
 
   /**
@@ -108,6 +153,7 @@ export class Store {
     const account = this.#account(puuid, riotId);
     if (account.baselines[dateKey] === undefined) {
       account.baselines[dateKey] = { absolute, at };
+      this.#db?.putBaseline(puuid, dateKey, { absolute, at });
       return true;
     }
     return false;
@@ -128,6 +174,7 @@ export class Store {
     }
 
     this.#state.cutoffs[platform] = snapshot;
+    this.#db?.putCutoff(platform, snapshot);
   }
 
   /**
@@ -173,7 +220,9 @@ export class Store {
     const existing = this.#state.watch[key];
 
     if (!existing) {
-      this.#state.watch[key] = { platform, puuid, riotId, addedAt: at, lastAskedAt: at };
+      const entry = { platform, puuid, riotId, addedAt: at, lastAskedAt: at };
+      this.#state.watch[key] = entry;
+      this.#db?.putWatch(entry);
       return 'added';
     }
 
@@ -182,6 +231,7 @@ export class Store {
     if (at - (existing.lastAskedAt ?? 0) < WATCH_REFRESH_MS) return 'current';
 
     existing.lastAskedAt = at;
+    this.#db?.putWatch(existing);
     return 'refreshed';
   }
 
@@ -225,8 +275,13 @@ export class Store {
         && Object.keys(account.baselines ?? {}).length === 0
         && (account.snapshot?.at ?? 0) < cutoff;
 
-      if (empty) delete this.#state.accounts[puuid];
+      if (empty) {
+        delete this.#state.accounts[puuid];
+        this.#db?.dropAccount(puuid);
+      }
     }
+
+    this.#db?.dropExpired(cutoff, new Date(cutoff).toISOString().slice(0, 10));
   }
 }
 
