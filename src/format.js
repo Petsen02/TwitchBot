@@ -39,25 +39,16 @@ export function formatRanksMessage(players) {
 /**
  * "RASMUS: 3W 2L - (+24 LP) 🟩🟩🟥🟩🟥"
  *
- * Squares run oldest to newest. The LP field is the point of the line, so it
- * is never left out: a signed figure is the day's net gain as measured by the
- * tracker, and a bare figure is the player's current LP, shown when no game
- * today was measured. The sign is what tells the two apart, so an unmeasured
- * day never reads as a misleading +0.
+ * Squares run oldest to newest.
  *
- * The current-LP fallback deliberately carries no tier name. In emote style a
- * tier has to stand alone between spaces for 7TV to swap in the image, and
- * "(EMERALD" would never match.
- *
- * A day with no games at all answers in the same shape, so the two cases do
- * not read as different kinds of answer.
- *
- * An unmeasured day also says so. Without that the bare figure reads like a
- * day's gain to anyone who has not noticed that the sign is what separates
- * them, and the note doubles as the answer to "why is there no LP for me yet".
- * It disappears on its own once the first game has been measured.
+ * The parentheses only ever hold a measured figure. Showing the player's
+ * current LP there instead, when nothing had been measured, put a number in
+ * the slot a gain lives in -- and a reader has to already know that the sign
+ * is what separates them. In practice it was read as a gain, so the field is
+ * left out entirely rather than filled with something that has to be
+ * explained. An unmeasured day says what it is and what happens next.
  */
-export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
+export function formatGains({ name, results, lpTotal, measuredCount }) {
   if (results.length === 0) return `${name}: ingen data${SEP}måler fra næste kamp`;
 
   const wins = results.filter(Boolean).length;
@@ -66,17 +57,11 @@ export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
 
   // The net total covers only measured games. Games played before tracking
   // began are counted in the W/L and the squares, but not in the LP.
-  const lp = measuredCount > 0
-    ? formatLpDelta(lpTotal)
-    : (entry ? `${entry.leaguePoints ?? 0} LP` : null);
+  if (measuredCount === 0) {
+    return `${name}: ${wins}W ${losses}L ${squares}${SEP}måler fra næste kamp`;
+  }
 
-  const head = lp
-    ? `${name}: ${wins}W ${losses}L - (${lp})`
-    : `${name}: ${wins}W ${losses}L`;
-
-  if (measuredCount > 0) return `${head} ${squares}`;
-
-  return `${head} ${squares}${SEP}måler fra næste kamp`;
+  return `${name}: ${wins}W ${losses}L - (${formatLpDelta(lpTotal)}) ${squares}`;
 }
 
 /**

@@ -172,17 +172,7 @@ export async function commandGains({ channel, argument }) {
     measuredCount = results.length;
   }
 
-  // Nothing measured means the player is not on the channel's roster, or the
-  // bot started after the day's first game. Their current LP is still worth
-  // showing, and the call is cached, so it is made only when there is no net
-  // figure to report.
-  let entry = null;
-  if (measuredCount === 0) {
-    const entries = await getLeagueEntries(platform, account.puuid).catch(() => []);
-    entry = pickQueue(entries, SOLO_QUEUE);
-  }
-
-  return formatGains({ name: account.gameName, results, lpTotal, measuredCount, entry });
+  return formatGains({ name: account.gameName, results, lpTotal, measuredCount });
 }
 
 /** Pulls the fields the stat line needs out of a match-v5 payload. */
