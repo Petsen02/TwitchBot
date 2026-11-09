@@ -2,96 +2,68 @@ import { writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { config, projectRoot } from './config.js';
 import { store } from './store.js';
-import { formatRank } from './ladder.js';
 import { formatDate, formatClock } from './time.js';
 
 /**
- * A plain-text roll of the watch list, written to data/spillere.txt.
+ * A plain-text list of Twitch name against Riot ID, in data/spillere.txt.
  *
- * This is the list that grows on its own: every player somebody has asked
- * about by Riot ID. Channel rosters are deliberately left out -- those are
- * curated by mods and already visible through !oldplayerlist. What cannot be
- * seen from anywhere is how far this one has grown.
+ * Every player somebody asks about by Riot ID goes on the watch list, and the
+ * name of whoever asked goes on with them. This file is that pairing, written
+ * so it can be opened in a file manager -- the tracker's own state is SQLite,
+ * which cannot be.
  *
- * The tracker's own state lives in SQLite, which is the right shape for the
- * bot and unreadable from a file manager. This file exists purely to be
- * opened and read by a person.
+ * The pairing is a guess, and an honest one only because people mostly look
+ * themselves up. Nothing stops a viewer asking about somebody else's account,
+ * and the bot has no way to tell the difference, so the Twitch name here
+ * means "who introduced this Riot ID", not "who owns it".
  *
- * It is rewritten in full every time, because it is a view of the state
- * rather than a record of it. Deleting it costs nothing -- the next poll
- * round writes it again.
+ * It is a view rather than a record: rewritten whole on every poll round, and
+ * harmless to delete.
  */
 
 const DATA_DIR = join(projectRoot, 'data');
 const FILE = join(DATA_DIR, 'spillere.txt');
 
-function stamp(at) {
-  if (!at) return '—';
-  return `${formatDate(at, config.timezone)} kl ${formatClock(at, config.timezone)}`;
-}
+const UNKNOWN = '—';
 
 function rows() {
   return store
     .watchedAccounts()
-    .map((entry) => {
-      const snapshot = store.getSnapshot(entry.puuid);
-
-      return {
-        riotId: entry.riotId,
-        platform: entry.platform,
-        // Always letters here. In emote style a rank renders as a 7TV image
-        // in chat, but this file is read as text, where the spelled-out tier
-        // is just a long word.
-        rank: snapshot ? formatRank(snapshot, 'letters') : 'ukendt',
-        addedAt: entry.addedAt ?? null,
-        lastMatch: store.getLastMatchAt(entry.puuid),
-      };
-    })
-    .sort((a, b) => (b.addedAt ?? 0) - (a.addedAt ?? 0));
+    .map((entry) => ({ twitch: entry.twitch || UNKNOWN, riotId: entry.riotId }))
+    .sort((a, b) => a.twitch.localeCompare(b.twitch, 'da'));
 }
 
 function render(entries, now) {
-  const measured = entries.filter((entry) => entry.lastMatch !== null).length;
+  const linked = entries.filter((entry) => entry.twitch !== UNKNOWN).length;
+  const when = `${formatDate(now, config.timezone)} kl ${formatClock(now, config.timezone)}`;
 
   const lines = [
-    `Spillere tilføjet via !session — ${entries.length} i alt, ${measured} med målinger`,
-    `Opdateret ${stamp(now)}`,
+    `Linkede konti — ${entries.length} i alt, ${linked} med Twitch-navn`,
+    `Opdateret ${when}`,
     '',
   ];
 
   if (entries.length === 0) {
-    lines.push('Ingen endnu. En spiller tilføjes automatisk, første gang nogen');
-    lines.push('skriver !session Navn#TAG om dem.');
+    lines.push('Ingen endnu. En konto linkes automatisk, første gang nogen');
+    lines.push('skriver !session Navn#TAG i chatten.');
     return `${lines.join('\n')}\n`;
   }
 
-  // Columns are sized to the content so the file reads straight whether the
-  // names are short or not. Newest first: the end of the list is the part
-  // that changed since last time anyone looked.
-  const width = (pick, min) => Math.max(min, ...entries.map((entry) => pick(entry).length));
-  const nameWidth = width((entry) => entry.riotId, 'Spiller'.length);
-  const rankWidth = width((entry) => entry.rank, 'Rang'.length);
-  const regionWidth = width((entry) => entry.platform, 'Region'.length);
-
-  const header = `${'Spiller'.padEnd(nameWidth)}  ${'Rang'.padEnd(rankWidth)}  `
-    + `${'Region'.padEnd(regionWidth)}  ${'Tilføjet'.padEnd(17)}  Seneste måling`;
+  const width = Math.max('Twitch'.length, ...entries.map((entry) => entry.twitch.length));
+  const header = `${'Twitch'.padEnd(width)}  Riot`;
 
   lines.push(header);
-  lines.push('-'.repeat(header.length));
+  lines.push('-'.repeat(width + 22));
 
   for (const entry of entries) {
-    lines.push(
-      `${entry.riotId.padEnd(nameWidth)}  ${entry.rank.padEnd(rankWidth)}  `
-      + `${entry.platform.padEnd(regionWidth)}  ${stamp(entry.addedAt).padEnd(17)}  `
-      + `${stamp(entry.lastMatch)}`,
-    );
+    lines.push(`${entry.twitch.padEnd(width)}  ${entry.riotId}`);
   }
 
   return `${lines.join('\n')}\n`;
 }
 
 /**
- * Writes the roll. Never throws: a report that cannot be written is not a
+ * Writes the list. Never throws: a file that cannot be written is not a
  * reason to take the tracker down with it.
  */
 export function writePlayerReport(now = Date.now()) {

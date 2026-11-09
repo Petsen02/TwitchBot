@@ -66,24 +66,30 @@ poll-runde, så prisen vokser med mængden af historik, hvilket er grunden til
 at den blev begænset til 14 dage. SQLite skriver kun de rækker der ændrede
 sig, så den grænse falder bort.
 
-Watch-listen kan læses som almindelig tekst i `data/spillere.txt`, som botten
-skriver om ved hver poll-runde. Den findes kun for at kunne åbnes i en
-filhåndtering — `tracker.db` er binær:
+Hver gang nogen skriver `!session Navn#TAG`, noteres både Riot-ID'et og
+Twitch-navnet på den der spurgte. Parrene kan læses som almindelig tekst i
+`data/spillere.txt`, som skrives om ved hver poll-runde — `tracker.db` er
+binær og kan ikke åbnes i en filhåndtering:
 
 ```
-Spillere tilføjet via !session — 3 i alt, 1 med målinger
+Linkede konti — 3 i alt, 3 med Twitch-navn
 Opdateret 09/11/26 kl 21:34
 
-Spiller        Rang     Region  Tilføjet           Seneste måling
------------------------------------------------------------------
-allan666#last  ukendt   euw1    09/11/26 kl 21:24  —
-Mistick#EUW    C1204LP  euw1    09/11/26 kl 18:34  —
-RASMUS#WINTR   E2 94LP  euw1    08/11/26 kl 19:34  09/11/26 kl 19:34
+Twitch     Riot
+-------------------------------
+allandieu  allan666#last
+petsen02   RASMUS#WINTR
+seer42     Mistick#EUW
 ```
 
-Nyeste først. `ukendt` betyder at trackeren endnu ikke har aflæst spillerens
-rang, og en tankestreg at ingen af deres kampe er målt endnu. Filen er en
-visning, ikke data — sletter du den, skrives den igen ved næste poll-runde.
+Twitch-navnet er det første der spurgte, og det bliver ikke overskrevet
+senere. Botten kan nemlig ikke se om nogen spørger om sin egen konto, så den
+næste der spørger er ikke mere sandsynlig ejer end den første — og en seer kan
+ikke overtage linket på en andens navn. Læs derfor kolonnen som "hvem
+introducerede dette Riot-ID", ikke som "hvem ejer det".
+
+En tankestreg betyder at kontoen kom på listen før linket fandtes. Den
+adopterer den næste der spørger om den.
 
 ### Hvor mange kan der være på listen
 

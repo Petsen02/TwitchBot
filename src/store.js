@@ -211,16 +211,22 @@ export class Store {
    * The cost is Riot requests, and this list is what has to stay within the
    * key's budget — see README.
    *
+   * `twitch` is whoever typed the command. It is recorded once, from the
+   * first person to ask, and never overwritten: the bot cannot tell whether
+   * somebody is asking about their own account, so the later asker is no
+   * more likely to be the owner than the first -- and leaving it alone means
+   * a viewer cannot take over the link on somebody else's name.
+   *
    * @returns 'added' | 'refreshed' | 'current'
    */
-  watch(platform, puuid, riotId, at = Date.now()) {
+  watch(platform, puuid, riotId, at = Date.now(), twitch = null) {
     this.#state.watch ??= {};
 
     const key = `${platform}:${puuid}`;
     const existing = this.#state.watch[key];
 
     if (!existing) {
-      const entry = { platform, puuid, riotId, addedAt: at, lastAskedAt: at };
+      const entry = { platform, puuid, riotId, addedAt: at, lastAskedAt: at, twitch };
       this.#state.watch[key] = entry;
       this.#db?.putWatch(entry);
       return 'added';
@@ -228,7 +234,12 @@ export class Store {
 
     existing.riotId = riotId;
 
-    if (at - (existing.lastAskedAt ?? 0) < WATCH_REFRESH_MS) return 'current';
+    // An entry from before the link existed takes the next asker it sees,
+    // rather than staying blank for good.
+    const claimed = !existing.twitch && twitch;
+    if (claimed) existing.twitch = twitch;
+
+    if (!claimed && at - (existing.lastAskedAt ?? 0) < WATCH_REFRESH_MS) return 'current';
 
     existing.lastAskedAt = at;
     this.#db?.putWatch(existing);

@@ -110,7 +110,7 @@ function getMatchStats(platform, matchId, puuid) {
   );
 }
 
-export async function commandGains({ channel, argument }) {
+export async function commandGains({ channel, argument, viewer }) {
   const target = resolveTarget(channel, argument);
   if (!target) return 'Ingen main sat — brug !gains Navn#TAG';
 
@@ -121,7 +121,13 @@ export async function commandGains({ channel, argument }) {
   // measured without a mod having to add them first. It cannot fill in games
   // already played — Riot exposes no LP history — but from the next game on,
   // this player is measured in every channel, not just this one.
-  const watched = store.watch(platform, account.puuid, `${account.gameName}#${account.tagLine}`);
+  const watched = store.watch(
+    platform,
+    account.puuid,
+    `${account.gameName}#${account.tagLine}`,
+    Date.now(),
+    viewer ?? null,
+  );
   if (watched !== 'current') store.save();
 
   const since = startOfDay(config.timezone);

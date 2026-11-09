@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS watch (
   riot_id       TEXT NOT NULL,
   added_at      INTEGER NOT NULL,
   last_asked_at INTEGER NOT NULL,
+  twitch        TEXT,
   PRIMARY KEY (platform, puuid)
 );
 
@@ -93,6 +94,15 @@ export function openDatabase() {
   db.exec('PRAGMA synchronous = NORMAL');
   db.exec(SCHEMA);
 
+  // `twitch` arrived after the first databases were created, and CREATE TABLE
+  // IF NOT EXISTS leaves those alone. Adding it here costs nothing on a fresh
+  // database and brings an existing one up to date without a migration step
+  // anybody has to remember to run.
+  const watchColumns = db.prepare('PRAGMA table_info(watch)').all();
+  if (!watchColumns.some((column) => column.name === 'twitch')) {
+    db.exec('ALTER TABLE watch ADD COLUMN twitch TEXT');
+  }
+
   const statements = {
     account: db.prepare('INSERT INTO accounts (puuid, riot_id) VALUES (?, ?) '
       + 'ON CONFLICT(puuid) DO UPDATE SET riot_id = excluded.riot_id'),
@@ -106,9 +116,10 @@ export function openDatabase() {
       + 'lp_delta = excluded.lp_delta, recorded_at = excluded.recorded_at'),
     baseline: db.prepare('INSERT INTO baselines (puuid, date_key, absolute, taken_at) '
       + 'VALUES (?, ?, ?, ?) ON CONFLICT(puuid, date_key) DO NOTHING'),
-    watch: db.prepare('INSERT INTO watch (platform, puuid, riot_id, added_at, last_asked_at) '
-      + 'VALUES (?, ?, ?, ?, ?) ON CONFLICT(platform, puuid) DO UPDATE SET '
-      + 'riot_id = excluded.riot_id, last_asked_at = excluded.last_asked_at'),
+    watch: db.prepare('INSERT INTO watch '
+      + '(platform, puuid, riot_id, added_at, last_asked_at, twitch) VALUES (?, ?, ?, ?, ?, ?) '
+      + 'ON CONFLICT(platform, puuid) DO UPDATE SET riot_id = excluded.riot_id, '
+      + 'last_asked_at = excluded.last_asked_at, twitch = excluded.twitch'),
     cutoff: db.prepare('INSERT INTO cutoffs (platform, payload) VALUES (?, ?) '
       + 'ON CONFLICT(platform) DO UPDATE SET payload = excluded.payload'),
     dropAccount: db.prepare('DELETE FROM accounts WHERE puuid = ?'),
@@ -176,6 +187,7 @@ export function openDatabase() {
           riotId: row.riot_id,
           addedAt: row.added_at,
           lastAskedAt: row.last_asked_at,
+          twitch: row.twitch ?? null,
         };
       }
 
@@ -221,6 +233,7 @@ export function openDatabase() {
         entry.riotId,
         num(entry.addedAt) ?? Date.now(),
         num(entry.lastAskedAt) ?? Date.now(),
+        text(entry.twitch),
       );
     },
 
