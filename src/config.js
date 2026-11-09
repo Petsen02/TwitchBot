@@ -64,6 +64,36 @@ export const PLATFORM_TO_REGION = {
 
 export const PLATFORMS = new Set(Object.keys(PLATFORM_TO_REGION));
 
+/**
+ * What players call each region, as opposed to what Riot's routing calls it.
+ *
+ * The trailing digit in "euw1" is a routing detail nobody says out loud. It
+ * cannot simply be stripped either: la1 and la2 are two different regions
+ * that would both come out as "LA", and eun1 is EUNE to everyone who plays
+ * there.
+ */
+const REGION_LABELS = {
+  br1: 'BR',
+  na1: 'NA',
+  la1: 'LAN',
+  la2: 'LAS',
+  eun1: 'EUNE',
+  euw1: 'EUW',
+  me1: 'ME',
+  tr1: 'TR',
+  ru: 'RU',
+  kr: 'KR',
+  jp1: 'JP',
+  tw2: 'TW',
+  sg2: 'SG',
+  vn2: 'VN',
+  oc1: 'OCE',
+};
+
+export function regionLabel(platform) {
+  return REGION_LABELS[platform] ?? platform.toUpperCase();
+}
+
 export function regionFor(platform) {
   const region = PLATFORM_TO_REGION[platform];
   if (!region) throw new Error(`Ukendt region "${platform}"`);

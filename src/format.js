@@ -1,6 +1,6 @@
 import { config } from './config.js';
 import { formatRank, formatTier, formatLpDelta } from './ladder.js';
-import { formatDuration, formatClock, formatDate } from './time.js';
+import { formatDuration } from './time.js';
 
 /** The reference bot separates fields with a spaced box-drawing bar. */
 export const SEP = ' │ ';
@@ -117,25 +117,11 @@ function tierLabel(tier) {
  * nobody can judge. The region comes from the channel, so one command answers
  * correctly wherever it is used.
  */
-export function formatCutoffs({
-  platform,
-  challengerCutoff,
-  grandmasterCutoff,
-  updatedAt,
-  nextUpdateAt,
-  timezone,
-}) {
+export function formatCutoffs({ platform, challengerCutoff, grandmasterCutoff }) {
   const fields = [];
 
   if (challengerCutoff !== null) fields.push(`${tierLabel('CHALLENGER')}${challengerCutoff}LP`);
   if (grandmasterCutoff !== null) fields.push(`${tierLabel('GRANDMASTER')}${grandmasterCutoff}LP`);
-
-  // The cutoff refreshes daily, so the date carries more than the clock does —
-  // but the clock still matters after a cold start, when it is not midnight.
-  const stamp = (at) => `${formatDate(at, timezone)} kl ${formatClock(at, timezone)}`;
-
-  if (updatedAt) fields.push(`opdateret ${stamp(updatedAt)}`);
-  if (nextUpdateAt) fields.push(`næste update ${stamp(nextUpdateAt)}`);
 
   return `${platform} ${fields.join(SEP)}`;
 }

@@ -1,4 +1,4 @@
-import { config, parseRiotId, PLATFORMS } from './config.js';
+import { config, parseRiotId, regionLabel, PLATFORMS } from './config.js';
 import { channels, normalizeChannel } from './channels.js';
 import { store } from './store.js';
 import { TtlCache } from './cache.js';
@@ -327,12 +327,9 @@ export async function commandCutoff({ channel }) {
   }
 
   return formatCutoffs({
-    platform: platform.toUpperCase(),
+    platform: regionLabel(platform),
     challengerCutoff: snapshot.challengerCutoff,
     grandmasterCutoff: snapshot.grandmasterCutoff,
-    updatedAt: snapshot.updatedAt,
-    nextUpdateAt: snapshot.nextUpdateAt,
-    timezone: config.timezone,
   });
 }
 

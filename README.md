@@ -25,7 +25,7 @@ flere streamere uden at de ser hinandens spillere.
 | `!nextrank [Navn#TAG]` | `Petsen SILVER II: 40LP │ mangler 8 wins til GOLD IV` |
 | `!lastgame [Navn#TAG]` | Fuld statistiklinje for seneste ranked kamp |
 | `!lobby [Navn#TAG]` | Gennemsnitsrank i den igangværende kamp, plus eventuelle pros |
-| `!chal` / `!cutoff` | `EUW1 CHALLENGER 2418LP │ GRANDMASTER 1808LP │ opdateret 03/11/26 kl 00:00 │ næste update 04/11/26 kl 00:00` |
+| `!chal` / `!cutoff` | `EUW CHALLENGER 2418LP │ GRANDMASTER 1808LP` |
 
 ### LP-måling og watch-listen
 
