@@ -48,6 +48,11 @@ export function formatRanksMessage(players) {
  * The current-LP fallback deliberately carries no tier name. In emote style a
  * tier has to stand alone between spaces for 7TV to swap in the image, and
  * "(EMERALD" would never match.
+ *
+ * An unmeasured day also says so. Without that the bare figure reads like a
+ * day's gain to anyone who has not noticed that the sign is what separates
+ * them, and the note doubles as the answer to "why is there no LP for me yet".
+ * It disappears on its own once the first game has been measured.
  */
 export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
   if (results.length === 0) return `${name} har ikke spillet ranked i dag`;
@@ -66,7 +71,9 @@ export function formatGains({ name, results, lpTotal, measuredCount, entry }) {
     ? `${name}: ${wins}W ${losses}L - (${lp})`
     : `${name}: ${wins}W ${losses}L`;
 
-  return `${head} ${squares}`;
+  if (measuredCount > 0) return `${head} ${squares}`;
+
+  return `${head} ${squares}${SEP}LP måles fra næste kamp`;
 }
 
 /**
