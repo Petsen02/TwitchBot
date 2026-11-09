@@ -90,6 +90,17 @@ const REGION_LABELS = {
   oc1: 'OCE',
 };
 
+/** Whether this watch-list entry is one of the named overlay players. */
+export function overlayAllows(entry) {
+  if (!entry) return false;
+
+  const named = config.overlayPlayers;
+  if (named.size === 0) return false;
+
+  return named.has((entry.twitch ?? '').toLowerCase())
+    || named.has((entry.riotId ?? '').toLowerCase());
+}
+
 export function regionLabel(platform) {
   return REGION_LABELS[platform] ?? platform.toUpperCase();
 }
@@ -206,6 +217,18 @@ export const config = {
   // Only used to print whole links in data/spillere.txt. The bot cannot know
   // its own public address, so without this the file lists just the path.
   overlayBaseUrl: (process.env.OVERLAY_BASE_URL || '').replace(/\/+$/, ''),
+  // Who gets an overlay. Named one by one rather than given to everyone on
+  // the watch list: that list fills with anybody a viewer happened to look
+  // up, and a link for each of them is a link nobody asked for.
+  //
+  // An entry matches either a Twitch name or a Riot ID, so a streamer can be
+  // named before the bot has worked out which account is theirs.
+  overlayPlayers: new Set(
+    (process.env.OVERLAY_PLAYERS || '')
+      .split(',')
+      .map((name) => name.trim().toLowerCase())
+      .filter(Boolean),
+  ),
 };
 
 /** Comma-separated channel names, normalised the way Twitch reports them. */

@@ -260,15 +260,7 @@ export class Store {
     const existing = this.#state.watch[key];
 
     if (!existing) {
-      const entry = {
-        platform,
-        puuid,
-        riotId,
-        addedAt: at,
-        lastAskedAt: at,
-        twitch,
-        overlayKey: newOverlayKey(),
-      };
+      const entry = { platform, puuid, riotId, addedAt: at, lastAskedAt: at, twitch };
       this.#state.watch[key] = entry;
       this.#db?.putWatch(entry);
       return 'added';
@@ -297,16 +289,19 @@ export class Store {
   }
 
   /**
-   * Gives a key to any entry that predates them, so an account added before
-   * the overlay existed still gets a link rather than staying unreachable.
+   * Gives a key to each entry `allow` accepts and has none yet.
+   *
+   * Keys are handed out rather than minted with the entry, because most of
+   * the watch list is viewers somebody looked up once. A link for each of
+   * them is a link nobody asked for.
    *
    * @returns how many were given one.
    */
-  ensureOverlayKeys() {
+  ensureOverlayKeys(allow) {
     let added = 0;
 
     for (const entry of Object.values(this.#state.watch ?? {})) {
-      if (entry.overlayKey) continue;
+      if (entry.overlayKey || !allow(entry)) continue;
 
       entry.overlayKey = newOverlayKey();
       this.#db?.putWatch(entry);

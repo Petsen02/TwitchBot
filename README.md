@@ -59,6 +59,19 @@ Network-fane, og botten serverer en side med dagens stilling:
 Vundne i grønt, tabte i rødt, gennemsigtig baggrund. Læg den i OBS som en
 Browser Source.
 
+**Kun navngivne spillere får et overlay.** Sæt `OVERLAY_PLAYERS` til dem det
+gælder, adskilt af komma — resten af watch-listen er folk en seer tilfældigvis
+har slået op, og et link til hver af dem er et link ingen har bedt om:
+
+```bash
+OVERLAY_PLAYERS=wendelbolol,Wendel#EUW
+```
+
+Hvert navn matcher enten et **Twitch-navn** eller et **Riot-ID**. Riot-ID'et er
+den sikre vej, for så afhænger det ikke af at botten har gennemskuet hvilken
+konto der hører til hvem. Listen tjekkes ved hver forespørgsel, så fjerner du
+nogen fra den, lukker deres link med det samme.
+
 **Hver spiller har sit eget link.** Adresserne står i `data/spillere.txt`:
 
 ```

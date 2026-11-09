@@ -1,6 +1,6 @@
 import { writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { config, projectRoot } from './config.js';
+import { config, overlayAllows, projectRoot } from './config.js';
 import { store } from './store.js';
 import { formatDate, formatClock } from './time.js';
 
@@ -28,7 +28,7 @@ const UNKNOWN = '—';
 
 /** The player's own overlay address, as far as the bot can know it. */
 function link(entry) {
-  if (!config.overlayPort || !entry.overlayKey) return null;
+  if (!config.overlayPort || !entry.overlayKey || !overlayAllows(entry)) return null;
   return `${config.overlayBaseUrl}/${entry.overlayKey}`;
 }
 
@@ -74,7 +74,7 @@ function render(entries, now) {
 
   for (const entry of entries) {
     const row = `${entry.twitch.padEnd(twitchWidth)}  ${entry.riotId.padEnd(riotWidth)}`;
-    lines.push((showLinks ? `${row}  ${entry.link ?? UNKNOWN}` : row).trimEnd());
+    lines.push((showLinks ? `${row}  ${entry.link ?? ''}` : row).trimEnd());
   }
 
   if (showLinks && !config.overlayBaseUrl) {

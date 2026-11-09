@@ -1,5 +1,5 @@
 import { createServer } from 'node:http';
-import { config } from './config.js';
+import { config, overlayAllows } from './config.js';
 import { store } from './store.js';
 import { startOfDay } from './time.js';
 
@@ -99,9 +99,13 @@ export function startOverlay() {
       ? store.findByOverlayKey(parts[0])
       : null;
 
+    // The list is checked on every request, not only when the key was made,
+    // so taking somebody off it closes their link at once.
     // An unknown key is answered exactly like a malformed path, so a wrong
     // guess cannot be told apart from a wrong shape.
-    if (!entry) return send(response, 404, 'text/plain; charset=utf-8', 'Not found');
+    if (!entry || !overlayAllows(entry)) {
+      return send(response, 404, 'text/plain; charset=utf-8', 'Not found');
+    }
 
     if (parts.length === 2) {
       const record = store.getRecordSince(entry.puuid, startOfDay(config.timezone));
@@ -114,9 +118,11 @@ export function startOverlay() {
   server.on('error', (error) => console.error('[overlay] fejl:', error.message));
 
   server.listen(config.overlayPort, '0.0.0.0', () => {
-    const backfilled = store.ensureOverlayKeys();
-    const extra = backfilled > 0 ? `, gav ${backfilled} spiller(e) et link` : '';
-    console.log(`[overlay] lytter på port ${config.overlayPort}${extra}`);
+    const named = [...config.overlayPlayers].join(', ') || 'ingen — sæt OVERLAY_PLAYERS';
+    store.ensureOverlayKeys(overlayAllows);
+
+    console.log(`[overlay] lytter på port ${config.overlayPort}`);
+    console.log(`[overlay] overlay til: ${named}`);
     console.log('[overlay] links står i data/spillere.txt');
   });
 
