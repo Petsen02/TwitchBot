@@ -84,11 +84,17 @@ petsen02   RASMUS#WINTR
 seer42     Mistick#EUW
 ```
 
-Twitch-navnet er det første der spurgte, og det bliver ikke overskrevet
-senere. Botten kan nemlig ikke se om nogen spørger om sin egen konto, så den
-næste der spørger er ikke mere sandsynlig ejer end den første — og en seer kan
-ikke overtage linket på en andens navn. Læs derfor kolonnen som "hvem
+Twitch-navnet er det første der spurgte. Botten kan ikke se om nogen spørger
+om sin egen konto, så det navn er et gæt — læs kolonnen som "hvem
 introducerede dette Riot-ID", ikke som "hvem ejer det".
+
+Med én undtagelse: spørger nogen hvis Twitch-navn **er** Riot-navnet, overtager
+de linket. Skriver `petsen02` først `!rank Rasmus#wintr`, står han der — indtil
+`rasmus` selv spørger, og så er det hans. Store og små bogstaver er ligegyldige,
+og mellemrum i Riot-navnet tæller ikke med, så `Lil Rasmus#EUW` matcher
+`lilrasmus`. Et navn der ikke matcher kan aldrig tage linket, og et der
+matcher kan ikke tage det fra et andet der matcher lige så godt — så linket
+kan kun flytte sig tættere på den sandsynlige ejer, aldrig væk.
 
 En tankestreg betyder at kontoen kom på listen før linket fandtes. Den
 adopterer den næste der spørger om den.

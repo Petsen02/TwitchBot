@@ -34,6 +34,23 @@ const RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
 // rewrite the file just to move a timestamp a few seconds.
 const WATCH_REFRESH_MS = 60 * 60 * 1000;
 
+/**
+ * Whether a Twitch name is the same name as the Riot ID's game name.
+ *
+ * Spaces come out because a Twitch name cannot contain one, so "Lil Rasmus"
+ * and "lilrasmus" are the same person writing the same name under two sets of
+ * rules. Case goes the same way: Twitch is not case sensitive and Riot is.
+ */
+function namesMatch(twitch, riotId) {
+  if (!twitch || !riotId) return false;
+
+  const hash = riotId.lastIndexOf('#');
+  const gameName = hash > 0 ? riotId.slice(0, hash) : riotId;
+  const flatten = (value) => value.toLowerCase().replace(/\s+/g, '');
+
+  return flatten(twitch) === flatten(gameName);
+}
+
 function emptyState() {
   return { version: 1, accounts: {} };
 }
@@ -211,11 +228,16 @@ export class Store {
    * The cost is Riot requests, and this list is what has to stay within the
    * key's budget — see README.
    *
-   * `twitch` is whoever typed the command. It is recorded once, from the
-   * first person to ask, and never overwritten: the bot cannot tell whether
-   * somebody is asking about their own account, so the later asker is no
-   * more likely to be the owner than the first -- and leaving it alone means
-   * a viewer cannot take over the link on somebody else's name.
+   * `twitch` is whoever typed the command, recorded from the first person to
+   * ask. The bot cannot tell whether somebody is asking about their own
+   * account, so that first name is a guess, and a later asker is normally no
+   * more likely to be the owner.
+   *
+   * Unless their Twitch name is the Riot name. That is the closest thing to
+   * a claim of ownership the bot can see, so it takes the link from a guess.
+   * It cannot take it from another name that matches just as well, and a
+   * name that does not match cannot take it at all -- so the link can still
+   * only move towards the likely owner, never away.
    *
    * @returns 'added' | 'refreshed' | 'current'
    */
@@ -234,9 +256,12 @@ export class Store {
 
     existing.riotId = riotId;
 
-    // An entry from before the link existed takes the next asker it sees,
-    // rather than staying blank for good.
-    const claimed = !existing.twitch && twitch;
+    // A blank entry -- one from before the link existed -- takes the next
+    // asker it sees rather than staying blank for good.
+    const claimed = Boolean(twitch)
+      && (!existing.twitch
+        || (namesMatch(twitch, riotId) && !namesMatch(existing.twitch, riotId)));
+
     if (claimed) existing.twitch = twitch;
 
     if (!claimed && at - (existing.lastAskedAt ?? 0) < WATCH_REFRESH_MS) return 'current';
