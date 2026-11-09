@@ -57,19 +57,29 @@ Network-fane, og botten serverer en side med dagens stilling:
 ```
 
 Vundne i grønt, tabte i rødt, gennemsigtig baggrund. Læg den i OBS som en
-Browser Source med adressen:
+Browser Source.
+
+**Hver spiller har sit eget link.** Adresserne står i `data/spillere.txt`:
 
 ```
-http://DIN-IP:PORT/DIN-STI?player=RASMUS%23WINTR
+Twitch    Riot          Overlay
+-------------------------------------------------
+mistick   Mistick#EUWW  http://din-ip:25581/c3f4fe9eb22410a7cc
+petsen02  RASMUS#WINTR  http://din-ip:25581/9ba1c80e04ce473791
 ```
 
-`%23` er `#`. Sitet opdaterer sig selv hvert femte sekund og læser kun fra
-bottens egen database — der går aldrig et kald til Riot, uanset hvor længe det
-kører. Stillingen går i 0/0 ved lokal midnat, samme døgnskifte som `!session`.
+Nøglen er hele adressen. Et link kan derfor gives videre alene og afslører kun
+den ene spiller — med én fælles side og spilleren som parameter kunne enhver
+bare rette i URL'en og se alle andres tal. En nøgle der ikke findes svarer 404,
+præcis som en forkert formet adresse, så et gæt kan ikke skelnes fra en fejl.
 
-`OVERLAY_PATH` fungerer som password. Tallene er ikke hemmelige, men en sti
-ingen kan gætte holder fremmede ude; alt andet end den rigtige sti svarer 404.
-Uden `OVERLAY_PORT` lytter botten ikke på noget.
+Sæt også `OVERLAY_BASE_URL` til fx `http://din-ip:25581`, så hele adressen
+skrives i filen i stedet for kun stien. Uden `OVERLAY_PORT` lytter botten ikke
+på noget, og så vises Overlay-kolonnen slet ikke.
+
+Siden opdaterer sig selv hvert femte sekund og læser kun fra bottens egen
+database — der går aldrig et kald til Riot, uanset hvor længe den kører.
+Stillingen går i 0/0 ved lokal midnat, samme døgnskifte som `!session`.
 
 Kampe hvor resultatet ikke kunne hentes tæller hverken som sejr eller tab, så
 tallene kan i værste fald være for lave — aldrig for høje.

@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { projectRoot } from './config.js';
+import { randomBytes } from 'node:crypto';
 import { openDatabase } from './sqlite.js';
 
 /**
@@ -49,6 +50,17 @@ function namesMatch(twitch, riotId) {
   const flatten = (value) => value.toLowerCase().replace(/\s+/g, '');
 
   return flatten(twitch) === flatten(gameName);
+}
+
+/**
+ * A player's own overlay address.
+ *
+ * One shared URL with the player as a parameter would let anyone holding it
+ * read anyone else's figures by editing it. A key per player means a link
+ * can be handed out on its own, and gives away nothing but that one player.
+ */
+function newOverlayKey() {
+  return randomBytes(9).toString('hex');
 }
 
 function emptyState() {
@@ -248,7 +260,15 @@ export class Store {
     const existing = this.#state.watch[key];
 
     if (!existing) {
-      const entry = { platform, puuid, riotId, addedAt: at, lastAskedAt: at, twitch };
+      const entry = {
+        platform,
+        puuid,
+        riotId,
+        addedAt: at,
+        lastAskedAt: at,
+        twitch,
+        overlayKey: newOverlayKey(),
+      };
       this.#state.watch[key] = entry;
       this.#db?.putWatch(entry);
       return 'added';
@@ -274,6 +294,38 @@ export class Store {
   /** Every watch-list account, shaped like a roster entry. */
   watchedAccounts() {
     return Object.values(this.#state.watch ?? {});
+  }
+
+  /**
+   * Gives a key to any entry that predates them, so an account added before
+   * the overlay existed still gets a link rather than staying unreachable.
+   *
+   * @returns how many were given one.
+   */
+  ensureOverlayKeys() {
+    let added = 0;
+
+    for (const entry of Object.values(this.#state.watch ?? {})) {
+      if (entry.overlayKey) continue;
+
+      entry.overlayKey = newOverlayKey();
+      this.#db?.putWatch(entry);
+      added += 1;
+    }
+
+    if (added > 0) this.save();
+    return added;
+  }
+
+  /** The account a given overlay key belongs to, or null. */
+  findByOverlayKey(key) {
+    if (!key) return null;
+
+    for (const entry of Object.values(this.#state.watch ?? {})) {
+      if (entry.overlayKey === key) return entry;
+    }
+
+    return null;
   }
 
   /**

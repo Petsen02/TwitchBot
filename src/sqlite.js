@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS watch (
   added_at      INTEGER NOT NULL,
   last_asked_at INTEGER NOT NULL,
   twitch        TEXT,
+  overlay_key   TEXT,
   PRIMARY KEY (platform, puuid)
 );
 
@@ -104,6 +105,7 @@ export function openDatabase() {
 
   if (!hasColumn('watch', 'twitch')) db.exec('ALTER TABLE watch ADD COLUMN twitch TEXT');
   if (!hasColumn('matches', 'win')) db.exec('ALTER TABLE matches ADD COLUMN win INTEGER');
+  if (!hasColumn('watch', 'overlay_key')) db.exec('ALTER TABLE watch ADD COLUMN overlay_key TEXT');
 
   const statements = {
     account: db.prepare('INSERT INTO accounts (puuid, riot_id) VALUES (?, ?) '
@@ -119,10 +121,11 @@ export function openDatabase() {
       + 'recorded_at = excluded.recorded_at'),
     baseline: db.prepare('INSERT INTO baselines (puuid, date_key, absolute, taken_at) '
       + 'VALUES (?, ?, ?, ?) ON CONFLICT(puuid, date_key) DO NOTHING'),
-    watch: db.prepare('INSERT INTO watch '
-      + '(platform, puuid, riot_id, added_at, last_asked_at, twitch) VALUES (?, ?, ?, ?, ?, ?) '
+    watch: db.prepare('INSERT INTO watch (platform, puuid, riot_id, added_at, last_asked_at, '
+      + 'twitch, overlay_key) VALUES (?, ?, ?, ?, ?, ?, ?) '
       + 'ON CONFLICT(platform, puuid) DO UPDATE SET riot_id = excluded.riot_id, '
-      + 'last_asked_at = excluded.last_asked_at, twitch = excluded.twitch'),
+      + 'last_asked_at = excluded.last_asked_at, twitch = excluded.twitch, '
+      + 'overlay_key = excluded.overlay_key'),
     cutoff: db.prepare('INSERT INTO cutoffs (platform, payload) VALUES (?, ?) '
       + 'ON CONFLICT(platform) DO UPDATE SET payload = excluded.payload'),
     dropAccount: db.prepare('DELETE FROM accounts WHERE puuid = ?'),
@@ -192,6 +195,7 @@ export function openDatabase() {
           addedAt: row.added_at,
           lastAskedAt: row.last_asked_at,
           twitch: row.twitch ?? null,
+          overlayKey: row.overlay_key ?? null,
         };
       }
 
@@ -241,6 +245,7 @@ export function openDatabase() {
         num(entry.addedAt) ?? Date.now(),
         num(entry.lastAskedAt) ?? Date.now(),
         text(entry.twitch),
+        text(entry.overlayKey),
       );
     },
 

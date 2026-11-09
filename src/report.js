@@ -26,10 +26,20 @@ const FILE = join(DATA_DIR, 'spillere.txt');
 
 const UNKNOWN = '—';
 
+/** The player's own overlay address, as far as the bot can know it. */
+function link(entry) {
+  if (!config.overlayPort || !entry.overlayKey) return null;
+  return `${config.overlayBaseUrl}/${entry.overlayKey}`;
+}
+
 function rows() {
   return store
     .watchedAccounts()
-    .map((entry) => ({ twitch: entry.twitch || UNKNOWN, riotId: entry.riotId }))
+    .map((entry) => ({
+      twitch: entry.twitch || UNKNOWN,
+      riotId: entry.riotId,
+      link: link(entry),
+    }))
     .sort((a, b) => a.twitch.localeCompare(b.twitch, 'da'));
 }
 
@@ -49,14 +59,27 @@ function render(entries, now) {
     return `${lines.join('\n')}\n`;
   }
 
-  const width = Math.max('Twitch'.length, ...entries.map((entry) => entry.twitch.length));
-  const header = `${'Twitch'.padEnd(width)}  Riot`;
+  const width = (pick, min) => Math.max(min, ...entries.map((entry) => pick(entry).length));
+  const twitchWidth = width((entry) => entry.twitch, 'Twitch'.length);
+
+  // The overlay column only appears when there is an overlay to link to.
+  const showLinks = entries.some((entry) => entry.link);
+  const riotWidth = showLinks ? width((entry) => entry.riotId, 'Riot'.length) : 'Riot'.length;
+
+  const header = `${'Twitch'.padEnd(twitchWidth)}  ${'Riot'.padEnd(riotWidth)}`
+    + (showLinks ? '  Overlay' : '');
 
   lines.push(header);
-  lines.push('-'.repeat(width + 22));
+  lines.push('-'.repeat(showLinks ? header.length + 18 : twitchWidth + 22));
 
   for (const entry of entries) {
-    lines.push(`${entry.twitch.padEnd(width)}  ${entry.riotId}`);
+    const row = `${entry.twitch.padEnd(twitchWidth)}  ${entry.riotId.padEnd(riotWidth)}`;
+    lines.push((showLinks ? `${row}  ${entry.link ?? UNKNOWN}` : row).trimEnd());
+  }
+
+  if (showLinks && !config.overlayBaseUrl) {
+    lines.push('');
+    lines.push('Sæt OVERLAY_BASE_URL i .env til fx http://din-ip:port for hele adressen.');
   }
 
   return `${lines.join('\n')}\n`;

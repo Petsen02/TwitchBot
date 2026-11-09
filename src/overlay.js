@@ -6,20 +6,25 @@ import { startOfDay } from './time.js';
 /**
  * A browser source for OBS showing today's win/loss count.
  *
- * It serves the figures the tracker has already measured and never calls
- * Riot, so refreshing it every few seconds costs nothing. That is only
- * possible because the result of each game is stored when the game is first
- * seen -- a finished match never changes its mind about who won.
+ * Every watched player has their own key, and that key is the whole address.
+ * One shared page with the player as a parameter would have let anyone who
+ * was given a link read everybody else's figures by editing it; a link now
+ * gives away nothing but the one player it was made for.
  *
- * The day boundary is the same one !session uses, so the count returns to
- * 0/0 at local midnight without anything having to reset it.
+ * It serves figures the tracker has already measured and never calls Riot,
+ * so refreshing every few seconds costs nothing. That works only because the
+ * result of each game is stored when the game is first seen -- a finished
+ * match never changes its mind about who won.
  *
- * Off unless OVERLAY_PORT is set. The path stands in for a password: there
- * is nothing secret in the numbers, but a URL nobody can guess keeps
- * strangers from watching along.
+ * The day boundary is the one !session uses, so the count returns to 0/0 at
+ * local midnight without anything having to reset it.
+ *
+ * Off unless OVERLAY_PORT is set: a chat bot has no business listening for
+ * connections nobody asked for.
  */
 
-const PAGE = `<!doctype html>
+function page(key) {
+  return `<!doctype html>
 <html lang="da">
 <head>
 <meta charset="utf-8">
@@ -27,11 +32,7 @@ const PAGE = `<!doctype html>
 <style>
   /* Transparent, so OBS composites it over the scene. Override any of this
      in the browser source's own Custom CSS field. */
-  html, body {
-    margin: 0;
-    background: transparent;
-    overflow: hidden;
-  }
+  html, body { margin: 0; background: transparent; overflow: hidden; }
   #score {
     font: 700 72px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
     color: #fff;
@@ -46,14 +47,12 @@ const PAGE = `<!doctype html>
 <body>
   <div id="score"><span class="wins">0</span>/<span class="losses">0</span></div>
 <script>
-  const player = new URLSearchParams(location.search).get('player') || '';
+  const DATA_URL = ${JSON.stringify(`/${key}/data`)};
   const node = document.getElementById('score');
 
   async function refresh() {
     try {
-      const response = await fetch('data?player=' + encodeURIComponent(player), {
-        cache: 'no-store',
-      });
+      const response = await fetch(DATA_URL, { cache: 'no-store' });
       if (!response.ok) return;
 
       const { wins, losses } = await response.json();
@@ -71,21 +70,13 @@ const PAGE = `<!doctype html>
 </body>
 </html>
 `;
-
-function record(riotId) {
-  if (!riotId) return { wins: 0, losses: 0 };
-
-  const puuid = store.findByRiotId(riotId);
-  if (!puuid) return { wins: 0, losses: 0 };
-
-  return store.getRecordSince(puuid, startOfDay(config.timezone));
 }
 
 function send(response, status, type, body) {
   response.writeHead(status, {
     'content-type': type,
     'cache-control': 'no-store',
-    // OBS fetches this from a file:// page, which counts as a foreign origin.
+    // OBS fetches this from a page it owns, which counts as a foreign origin.
     'access-control-allow-origin': '*',
   });
   response.end(body);
@@ -93,8 +84,6 @@ function send(response, status, type, body) {
 
 export function startOverlay() {
   if (!config.overlayPort) return null;
-
-  const base = `/${config.overlayPath}`;
 
   const server = createServer((request, response) => {
     let url;
@@ -104,24 +93,31 @@ export function startOverlay() {
       return send(response, 400, 'text/plain; charset=utf-8', 'Bad request');
     }
 
-    const path = url.pathname.replace(/\/+$/, '');
+    // "/key" or "/key/data", and nothing else.
+    const parts = url.pathname.split('/').filter(Boolean);
+    const entry = parts.length === 1 || (parts.length === 2 && parts[1] === 'data')
+      ? store.findByOverlayKey(parts[0])
+      : null;
 
-    if (path === `${base}/data`) {
-      const { wins, losses } = record(url.searchParams.get('player'));
-      return send(response, 200, 'application/json', JSON.stringify({ wins, losses }));
+    // An unknown key is answered exactly like a malformed path, so a wrong
+    // guess cannot be told apart from a wrong shape.
+    if (!entry) return send(response, 404, 'text/plain; charset=utf-8', 'Not found');
+
+    if (parts.length === 2) {
+      const record = store.getRecordSince(entry.puuid, startOfDay(config.timezone));
+      return send(response, 200, 'application/json', JSON.stringify(record));
     }
 
-    if (path === base) return send(response, 200, 'text/html; charset=utf-8', PAGE);
-
-    // Anything else, including a wrong path, gets the same blank answer, so
-    // the real one cannot be found by guessing.
-    return send(response, 404, 'text/plain; charset=utf-8', 'Not found');
+    return send(response, 200, 'text/html; charset=utf-8', page(entry.overlayKey));
   });
 
   server.on('error', (error) => console.error('[overlay] fejl:', error.message));
 
   server.listen(config.overlayPort, '0.0.0.0', () => {
-    console.log(`[overlay] lytter på port ${config.overlayPort}${base}`);
+    const backfilled = store.ensureOverlayKeys();
+    const extra = backfilled > 0 ? `, gav ${backfilled} spiller(e) et link` : '';
+    console.log(`[overlay] lytter på port ${config.overlayPort}${extra}`);
+    console.log('[overlay] links står i data/spillere.txt');
   });
 
   server.unref?.();

@@ -203,7 +203,9 @@ export const config = {
   // password in all but name: anyone who has the URL can read the figures,
   // so it should not be guessable.
   overlayPort: process.env.OVERLAY_PORT ? count('OVERLAY_PORT', 0) : null,
-  overlayPath: (process.env.OVERLAY_PATH || 'overlay').replace(/^\/+|\/+$/g, ''),
+  // Only used to print whole links in data/spillere.txt. The bot cannot know
+  // its own public address, so without this the file lists just the path.
+  overlayBaseUrl: (process.env.OVERLAY_BASE_URL || '').replace(/\/+$/, ''),
 };
 
 /** Comma-separated channel names, normalised the way Twitch reports them. */
