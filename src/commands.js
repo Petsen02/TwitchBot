@@ -152,7 +152,7 @@ export async function commandGains({ channel, argument, viewer }) {
     viewer,
   );
 
-  const since = startOfDay(config.timezone);
+  const since = startOfDay(config.timezone, new Date(), config.dayStartHour);
   const matchIds = (await getMatchIds(platform, account.puuid, {
     startTime: Math.floor(since / 1000),
     count: 20,
@@ -186,7 +186,10 @@ export async function commandGains({ channel, argument, viewer }) {
   // individual games were missed — but only if it was captured before the
   // day's first game. A baseline taken mid-session would silently erase every
   // game that came before it.
-  const baseline = store.getBaseline(account.puuid, localDateKey(config.timezone));
+  const baseline = store.getBaseline(
+    account.puuid,
+    localDateKey(config.timezone, new Date(), config.dayStartHour),
+  );
   const snapshot = store.getSnapshot(account.puuid);
   const firstGameStart = stats.find(Boolean)?.gameStart ?? null;
 

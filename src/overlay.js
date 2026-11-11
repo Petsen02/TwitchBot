@@ -109,7 +109,8 @@ export function startOverlay() {
     }
 
     if (parts.length === 2) {
-      const record = store.getRecordSince(entry.puuid, startOfDay(config.timezone));
+      const since = startOfDay(config.timezone, new Date(), config.dayStartHour);
+      const record = store.getRecordSince(entry.puuid, since);
       return send(response, 200, 'application/json', JSON.stringify(record));
     }
 

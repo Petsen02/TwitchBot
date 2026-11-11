@@ -242,6 +242,16 @@ function parseOverlayPlayers(raw) {
   return players;
 }
 
+function dayStartHour() {
+  const value = Number(process.env.DAY_START_HOUR ?? 6);
+
+  if (!Number.isInteger(value) || value < 0 || value > 23) {
+    throw new Error('DAY_START_HOUR skal være et helt tal mellem 0 og 23');
+  }
+
+  return value;
+}
+
 function count(key, fallback) {
   const value = Number(process.env[key] ?? fallback);
   if (!Number.isFinite(value) || value <= 0) throw new Error(`${key} skal være et positivt tal`);
@@ -264,6 +274,10 @@ export const config = {
   botOwners: parseOwners(process.env.BOT_OWNERS ?? process.env.BOT_OWNER),
   rankStyle: parseRankStyle(process.env.RANK_STYLE),
   timezone: process.env.TIMEZONE || 'Europe/Copenhagen',
+  // When a tracking day begins. Not midnight: people are still playing then,
+  // and a tally that resets mid-session is a tally nobody trusts. Six in the
+  // morning is the quietest hour, so the reset lands in downtime.
+  dayStartHour: dayStartHour(),
   // Where !oldcommands points. Change this to the Pages URL once it is live,
   // without touching the code.
   wikiUrl: process.env.WIKI_URL || 'https://github.com/Petsen02/TwitchBot',

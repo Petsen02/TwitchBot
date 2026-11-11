@@ -74,7 +74,8 @@ async function pollAccount(account) {
   const previous = store.getSnapshot(puuid);
 
   // Anchor the day's net figure the first time we see this player today.
-  store.setBaselineIfMissing(puuid, riotId, localDateKey(config.timezone, new Date(now)), absolute, now);
+  const dayKey = localDateKey(config.timezone, new Date(now), config.dayStartHour);
+  store.setBaselineIfMissing(puuid, riotId, dayKey, absolute, now);
 
   const since = previous?.at ?? now - COLD_START_LOOKBACK_MS;
   const matchIds = await getMatchIds(platform, puuid, {
